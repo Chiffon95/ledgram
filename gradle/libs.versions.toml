@@ -1,6 +1,6 @@
 [versions]
-agp = "8.13.2"
-kotlin = "2.3.0"
+agp = "9.4.1"
+kotlin = "2.2.10"
 coreKtx = "1.17.0"
 coreSplashscreen = "1.2.0"
 activityCompose = "1.12.2"
@@ -17,11 +17,10 @@ androidx-compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+kotlin-parcelize-runtime = { module = "org.jetbrains.kotlin:kotlin-parcelize-runtime", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 

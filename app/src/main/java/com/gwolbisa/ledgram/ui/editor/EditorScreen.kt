@@ -1,13 +1,16 @@
 package com.gwolbisa.ledgram.ui.editor
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -23,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +43,8 @@ import com.gwolbisa.ledgram.ui.theme.LedMuted
 import com.gwolbisa.ledgram.util.MAX_MESSAGE_LENGTH
 import com.gwolbisa.ledgram.util.codePointLength
 import com.gwolbisa.ledgram.util.normalizeMessageInput
+
+private val EditorContentMaxWidth = 720.dp
 
 @Composable
 fun EditorScreen(
@@ -74,51 +80,59 @@ fun EditorScreen(
             )
         },
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp),
+                .fillMaxSize(),
         ) {
-            Spacer(Modifier.height(18.dp))
-            Text(
-                text = stringResource(R.string.editor_title),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = stringResource(R.string.editor_subtitle),
-                color = LedMuted,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Spacer(Modifier.height(22.dp))
-            SectionLabel(stringResource(R.string.preview_label))
-            Spacer(Modifier.height(8.dp))
-            LedPreview(
-                message = message.ifEmpty { stringResource(R.string.preview_sample) },
-                bold = bold,
-                italic = italic,
-                underline = underline,
-            )
-            Spacer(Modifier.height(26.dp))
-            MessageInput(
-                message = message,
-                onMessageChange = { message = normalizeMessageInput(it) },
-            )
-            Spacer(Modifier.height(28.dp))
-            RenderStyleSelector()
-            Spacer(Modifier.height(28.dp))
-            EffectSelector()
-            Spacer(Modifier.height(28.dp))
-            StyleSelector(
-                bold = bold,
-                italic = italic,
-                underline = underline,
-                onBoldChange = { bold = !bold },
-                onItalicChange = { italic = !italic },
-                onUnderlineChange = { underline = !underline },
-            )
-            Spacer(Modifier.height(32.dp))
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .widthIn(max = EditorContentMaxWidth)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp),
+            ) {
+                Spacer(Modifier.height(18.dp))
+                Text(
+                    text = stringResource(R.string.editor_title),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = stringResource(R.string.editor_subtitle),
+                    color = LedMuted,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(Modifier.height(22.dp))
+                SectionLabel(stringResource(R.string.preview_label))
+                Spacer(Modifier.height(8.dp))
+                LedPreview(
+                    message = message.ifEmpty { stringResource(R.string.preview_sample) },
+                    bold = bold,
+                    italic = italic,
+                    underline = underline,
+                )
+                Spacer(Modifier.height(26.dp))
+                MessageInput(
+                    message = message,
+                    onMessageChange = { message = normalizeMessageInput(it) },
+                )
+                Spacer(Modifier.height(28.dp))
+                RenderStyleSelector()
+                Spacer(Modifier.height(28.dp))
+                EffectSelector()
+                Spacer(Modifier.height(28.dp))
+                StyleSelector(
+                    bold = bold,
+                    italic = italic,
+                    underline = underline,
+                    onBoldChange = { bold = !bold },
+                    onItalicChange = { italic = !italic },
+                    onUnderlineChange = { underline = !underline },
+                )
+                Spacer(Modifier.height(32.dp))
+            }
         }
     }
 }
@@ -155,7 +169,10 @@ private fun RenderStyleSelector() {
     Column {
         SectionLabel(stringResource(R.string.render_style_label))
         Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
             FilterChip(
                 selected = true,
                 onClick = {},
@@ -195,16 +212,17 @@ private fun EffectSelector() {
             onClick = {},
             label = { Text(stringResource(R.string.effect_static)) },
         )
-        futureEffects.chunked(2).forEach { rowEffects ->
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                rowEffects.forEach { label ->
-                    FilterChip(
-                        selected = false,
-                        onClick = {},
-                        enabled = false,
-                        label = { Text(stringResource(label)) },
-                    )
-                }
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            futureEffects.forEach { label ->
+                FilterChip(
+                    selected = false,
+                    onClick = {},
+                    enabled = false,
+                    label = { Text(stringResource(label)) },
+                )
             }
         }
         Text(
@@ -228,7 +246,10 @@ private fun StyleSelector(
     Column {
         SectionLabel(stringResource(R.string.text_style_label))
         Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
             FilterChip(
                 selected = bold,
                 onClick = onBoldChange,
@@ -265,15 +286,19 @@ private fun EditorBottomActions(enabled: Boolean, onStartDisplay: () -> Unit) {
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 12.dp,
     ) {
-        Column(
-            modifier = Modifier.padding(
-                PaddingValues(start = 20.dp, top = 14.dp, end = 20.dp, bottom = 16.dp),
-            ),
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    PaddingValues(start = 20.dp, top = 14.dp, end = 20.dp, bottom = 16.dp),
+                ),
+            contentAlignment = Alignment.Center,
         ) {
             Button(
                 onClick = onStartDisplay,
                 enabled = enabled,
                 modifier = Modifier
+                    .widthIn(max = EditorContentMaxWidth)
                     .fillMaxWidth()
                     .height(56.dp),
             ) {

@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -18,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -96,16 +98,21 @@ private fun StaticTextGlowRenderer(
     config: DisplayConfig,
     modifier: Modifier = Modifier,
 ) {
-    LedText(
-        text = config.message,
-        color = Color(config.textColor),
-        bold = config.bold,
-        italic = config.italic,
-        underline = config.underline,
-        maximumFontSize = 180.sp,
-        minimumFontSize = 4.sp,
-        modifier = modifier,
-        horizontalPadding = 40.dp,
-    )
+    BoxWithConstraints(modifier = modifier) {
+        val density = LocalDensity.current
+        val heightBasedFontSize = with(density) { (maxHeight * 0.72f).toSp() }
+
+        LedText(
+            text = config.message,
+            color = Color(config.textColor),
+            bold = config.bold,
+            italic = config.italic,
+            underline = config.underline,
+            maximumFontSize = heightBasedFontSize,
+            minimumFontSize = 4.sp,
+            modifier = Modifier.fillMaxSize(),
+            horizontalPadding = 40.dp,
+        )
+    }
 }
 
