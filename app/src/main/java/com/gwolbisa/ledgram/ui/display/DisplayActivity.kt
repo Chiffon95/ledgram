@@ -1,5 +1,7 @@
 package com.gwolbisa.ledgram.ui.display
 
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -11,12 +13,14 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.ui.theme.LEDgramTheme
+import com.gwolbisa.ledgram.util.applyOrientationPolicy
 
 class DisplayActivity : ComponentActivity() {
     private var previousBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        applyDisplayOrientationPolicy()
         enableEdgeToEdge()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         previousBrightness = window.attributes.screenBrightness
@@ -39,6 +43,11 @@ class DisplayActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        applyDisplayOrientationPolicy(newConfig)
     }
 
     override fun onResume() {
@@ -68,6 +77,15 @@ class DisplayActivity : ComponentActivity() {
             systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
+    }
+
+    private fun applyDisplayOrientationPolicy(
+        configuration: Configuration = resources.configuration,
+    ) {
+        applyOrientationPolicy(
+            compactOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
+            configuration = configuration,
+        )
     }
 
     companion object {

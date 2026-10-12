@@ -12,13 +12,11 @@
         <activity
             android:name=".ui.display.DisplayActivity"
             android:exported="false"
-            android:screenOrientation="@integer/display_screen_orientation"
             android:theme="@style/Theme.LEDgram" />
 
         <activity
             android:name=".ui.editor.EditorActivity"
             android:exported="true"
-            android:screenOrientation="@integer/editor_screen_orientation"
             android:theme="@style/Theme.LEDgram.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

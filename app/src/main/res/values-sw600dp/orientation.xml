@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED lets large windows follow the system. -->
-    <integer name="editor_screen_orientation">-1</integer>
-    <integer name="display_screen_orientation">-1</integer>
-</resources>
