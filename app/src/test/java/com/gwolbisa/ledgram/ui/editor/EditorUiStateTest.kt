@@ -4,6 +4,7 @@ import com.gwolbisa.ledgram.model.MotionEffect
 import com.gwolbisa.ledgram.model.RenderStyle
 import com.gwolbisa.ledgram.model.VisualEffect
 import com.gwolbisa.ledgram.ui.theme.BrandColorValue
+import com.gwolbisa.ledgram.util.DEFAULT_SPEED_MULTIPLIER
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -22,6 +23,7 @@ class EditorUiStateTest {
             renderStyle = RenderStyle.DOT_MATRIX,
             motionEffect = MotionEffect.RIGHT_TO_LEFT,
             visualEffect = VisualEffect.PULSE,
+            speedMultiplier = 1.75f,
         )
 
         val config = state.toDisplayConfig()
@@ -37,6 +39,7 @@ class EditorUiStateTest {
         assertEquals(MotionEffect.RIGHT_TO_LEFT, config.motionEffect)
         assertEquals(VisualEffect.PULSE, state.visualEffect)
         assertEquals(VisualEffect.PULSE, config.visualEffect)
+        assertEquals(1.75f, config.speedMultiplier)
     }
 
     @Test
@@ -45,6 +48,7 @@ class EditorUiStateTest {
 
         assertEquals(BrandColorValue.TEXT, state.textColor)
         assertEquals(BrandColorValue.BACKGROUND, state.backgroundColor)
+        assertEquals(DEFAULT_SPEED_MULTIPLIER, state.speedMultiplier)
     }
 
     @Test
@@ -75,6 +79,42 @@ class EditorUiStateTest {
         assertEquals("", state.message)
         assertEquals("", state.toDisplayConfig().message)
         assertFalse(state.canStartDisplay)
+    }
+
+    @Test
+    fun `empty message uses sample only in preview config`() {
+        val state = EditorUiState()
+
+        val previewConfig = state.toPreviewConfig("Hello!")
+        val displayConfig = state.toDisplayConfig()
+
+        assertEquals("Hello!", previewConfig.message)
+        assertEquals("", state.message)
+        assertEquals("", displayConfig.message)
+        assertFalse(state.canStartDisplay)
+    }
+
+    @Test
+    fun `saver restores selected speed multiplier`() {
+        val restored = requireNotNull(
+            EditorUiState.Saver.restore(
+                listOf(
+                    "LEDgram",
+                    BrandColorValue.TEXT,
+                    BrandColorValue.BACKGROUND,
+                    false,
+                    false,
+                    false,
+                    RenderStyle.TEXT_GLOW.name,
+                    MotionEffect.RIGHT_TO_LEFT.name,
+                    VisualEffect.FADE.name,
+                    1.5f,
+                ),
+            ),
+        )
+
+        assertEquals(1.5f, restored.speedMultiplier)
+        assertEquals(1.5f, restored.toDisplayConfig().speedMultiplier)
     }
 
     @Test

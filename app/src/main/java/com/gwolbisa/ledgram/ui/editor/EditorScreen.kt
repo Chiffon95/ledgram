@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,6 +32,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -52,6 +54,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -69,7 +72,12 @@ import com.gwolbisa.ledgram.util.addRecentColor
 import com.gwolbisa.ledgram.util.codePointLength
 import com.gwolbisa.ledgram.util.formatHexColor
 import com.gwolbisa.ledgram.util.isLowColorContrast
+import com.gwolbisa.ledgram.util.MAX_SPEED_MULTIPLIER
+import com.gwolbisa.ledgram.util.MIN_SPEED_MULTIPLIER
+import com.gwolbisa.ledgram.util.normalizeSpeedMultiplier
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import kotlin.math.roundToInt
 
 private val EditorContentMaxWidth = 720.dp
 private val EditorPreviewHeight = 180.dp
@@ -102,6 +110,7 @@ fun EditorScreen(
     val coroutineScope = rememberCoroutineScope()
     val lowContrastWarning = stringResource(R.string.low_color_contrast_warning)
     val displayConfig = uiState.toDisplayConfig()
+    val previewConfig = uiState.toPreviewConfig(stringResource(R.string.message_placeholder))
 
     fun updateColors(nextState: EditorUiState) {
         val colorsChanged = nextState.textColor != uiState.textColor ||
@@ -155,7 +164,7 @@ fun EditorScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             EditorTopArea(
-                config = displayConfig,
+                config = previewConfig,
                 onOpenSettings = onOpenSettings,
             )
         },
@@ -211,6 +220,15 @@ fun EditorScreen(
                     onSelected = { uiState = uiState.copy(visualEffect = it) },
                 )
                 Spacer(Modifier.height(28.dp))
+                SpeedSelector(
+                    speedMultiplier = uiState.speedMultiplier,
+                    enabled = uiState.motionEffect != MotionEffect.STATIC ||
+                        uiState.visualEffect != VisualEffect.NONE,
+                    onSpeedChange = {
+                        uiState = uiState.copy(speedMultiplier = normalizeSpeedMultiplier(it))
+                    },
+                )
+                Spacer(Modifier.height(28.dp))
                 StyleSelector(
                     bold = uiState.bold,
                     italic = uiState.italic,
@@ -223,6 +241,66 @@ fun EditorScreen(
                 )
                 Spacer(Modifier.height(32.dp))
             }
+        }
+    }
+}
+
+@Composable
+private fun SpeedSelector(
+    speedMultiplier: Float,
+    enabled: Boolean,
+    onSpeedChange: (Float) -> Unit,
+) {
+    val normalizedSpeed = normalizeSpeedMultiplier(speedMultiplier)
+    val formattedSpeed = remember(normalizedSpeed) {
+        NumberFormat.getNumberInstance().apply {
+            minimumFractionDigits = 1
+            maximumFractionDigits = 2
+        }.format(normalizedSpeed)
+    }
+    val valueLabel = stringResource(R.string.speed_multiplier, formattedSpeed)
+    val speedLabel = stringResource(R.string.speed_label)
+
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SectionLabel(speedLabel)
+            Text(
+                text = valueLabel,
+                color = LedMuted,
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
+        Slider(
+            value = normalizedSpeed,
+            onValueChange = { value ->
+                onSpeedChange((value * 4f).roundToInt() / 4f)
+            },
+            modifier = Modifier.semantics {
+                contentDescription = speedLabel
+                stateDescription = valueLabel
+            },
+            enabled = enabled,
+            valueRange = MIN_SPEED_MULTIPLIER..MAX_SPEED_MULTIPLIER,
+            steps = 5,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = stringResource(R.string.speed_slow),
+                color = LedMuted,
+                style = MaterialTheme.typography.labelSmall,
+            )
+            Text(
+                text = stringResource(R.string.speed_fast),
+                color = LedMuted,
+                style = MaterialTheme.typography.labelSmall,
+            )
         }
     }
 }

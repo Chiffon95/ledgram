@@ -1,6 +1,7 @@
 package com.gwolbisa.ledgram.model
 
 import android.os.Parcelable
+import com.gwolbisa.ledgram.util.DEFAULT_SPEED_MULTIPLIER
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -14,6 +15,7 @@ data class DisplayConfig(
     val renderStyle: RenderStyle,
     val motionEffect: MotionEffect,
     val visualEffect: VisualEffect,
+    val speedMultiplier: Float = DEFAULT_SPEED_MULTIPLIER,
 ) : Parcelable
 
 enum class RenderStyle {

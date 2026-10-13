@@ -18,6 +18,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.style.TextMotion
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -28,6 +30,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
+
+internal val TextGlyphOverscan = 6.dp
 
 @Composable
 fun LedText(
@@ -45,7 +49,10 @@ fun LedText(
         val textMeasurer = rememberTextMeasurer()
         val verticalPadding = 16.dp
         val availableWidthPx = with(density) {
-            (maxWidth - horizontalPadding * 2).toPx().roundToInt().coerceAtLeast(1)
+            (maxWidth - horizontalPadding * 2 - TextGlyphOverscan * 2)
+                .toPx()
+                .roundToInt()
+                .coerceAtLeast(1)
         }
         val availableHeightPx = with(density) {
             (maxHeight - verticalPadding * 2).toPx().roundToInt().coerceAtLeast(1)
@@ -94,7 +101,9 @@ fun LedText(
         ) {
             Text(
                 text = text,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = TextGlyphOverscan),
                 textAlign = TextAlign.Center,
                 maxLines = Int.MAX_VALUE,
                 softWrap = true,
@@ -123,6 +132,8 @@ internal fun ledTextStyle(
     fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
     fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal,
     textDecoration = if (underline) TextDecoration.Underline else TextDecoration.None,
+    platformStyle = PlatformTextStyle(includeFontPadding = false),
+    textMotion = TextMotion.Animated,
     shadow = Shadow(
         color = color.copy(alpha = 0.42f),
         offset = Offset.Zero,

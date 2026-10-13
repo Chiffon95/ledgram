@@ -20,6 +20,10 @@
     <string name="effect_blink">Blink</string>
     <string name="effect_pulse">Pulse</string>
     <string name="effect_fade">Fade</string>
+    <string name="speed_label">Speed</string>
+    <string name="speed_slow">Slow</string>
+    <string name="speed_fast">Fast</string>
+    <string name="speed_multiplier">%1$sx</string>
     <string name="text_style_label">Text Style</string>
     <string name="bold">Bold</string>
     <string name="italic">Italic</string>

@@ -18,8 +18,12 @@
     <string name="effect_label">효과</string>
     <string name="effect_none">없음</string>
     <string name="effect_blink">깜박임</string>
-    <string name="effect_pulse">펄스</string>
-    <string name="effect_fade">페이드</string>
+    <string name="effect_pulse">숨쉬기</string>
+    <string name="effect_fade">부드러운 점멸</string>
+    <string name="speed_label">속도</string>
+    <string name="speed_slow">느리게</string>
+    <string name="speed_fast">빠르게</string>
+    <string name="speed_multiplier">%1$sx</string>
     <string name="text_style_label">글자 스타일</string>
     <string name="bold">굵게</string>
     <string name="italic">기울임</string>

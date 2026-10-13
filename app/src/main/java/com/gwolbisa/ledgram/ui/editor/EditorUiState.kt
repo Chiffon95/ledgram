@@ -9,6 +9,8 @@ import com.gwolbisa.ledgram.model.VisualEffect
 import com.gwolbisa.ledgram.ui.theme.BrandColorValue
 import com.gwolbisa.ledgram.util.normalizeMessageForDisplay
 import com.gwolbisa.ledgram.util.normalizeMessageInput
+import com.gwolbisa.ledgram.util.DEFAULT_SPEED_MULTIPLIER
+import com.gwolbisa.ledgram.util.normalizeSpeedMultiplier
 
 data class EditorUiState(
     val message: String = "",
@@ -20,6 +22,7 @@ data class EditorUiState(
     val renderStyle: RenderStyle = RenderStyle.TEXT_GLOW,
     val motionEffect: MotionEffect = MotionEffect.STATIC,
     val visualEffect: VisualEffect = VisualEffect.NONE,
+    val speedMultiplier: Float = DEFAULT_SPEED_MULTIPLIER,
 ) {
     val canStartDisplay: Boolean
         get() = normalizeMessageForDisplay(message).isNotEmpty()
@@ -41,7 +44,17 @@ data class EditorUiState(
         renderStyle = renderStyle,
         motionEffect = motionEffect,
         visualEffect = visualEffect,
+        speedMultiplier = normalizeSpeedMultiplier(speedMultiplier),
     )
+
+    fun toPreviewConfig(sampleMessage: String): DisplayConfig {
+        val displayConfig = toDisplayConfig()
+        return if (message.isEmpty()) {
+            displayConfig.copy(message = sampleMessage)
+        } else {
+            displayConfig
+        }
+    }
 
     companion object {
         val Saver: Saver<EditorUiState, Any> = listSaver(
@@ -56,6 +69,7 @@ data class EditorUiState(
                     state.renderStyle.name,
                     state.motionEffect.name,
                     state.visualEffect.name,
+                    state.speedMultiplier,
                 )
             },
             restore = { values ->
@@ -69,6 +83,11 @@ data class EditorUiState(
                     renderStyle = RenderStyle.valueOf(values[6] as String),
                     motionEffect = MotionEffect.valueOf(values[7] as String),
                     visualEffect = VisualEffect.valueOf(values[8] as String),
+                    speedMultiplier = if (values.size > 9) {
+                        normalizeSpeedMultiplier((values[9] as Number).toFloat())
+                    } else {
+                        DEFAULT_SPEED_MULTIPLIER
+                    },
                 )
             },
         )
