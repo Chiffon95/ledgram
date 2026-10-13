@@ -32,8 +32,8 @@ class EditorUiStateTest {
         assertTrue(config.underline)
         assertEquals(RenderStyle.DOT_MATRIX, config.renderStyle)
         assertEquals(DisplayEffect.PULSE, state.effect)
-        assertEquals(DisplayEffect.STATIC, state.runtimeEffect)
-        assertEquals(DisplayEffect.STATIC, config.effect)
+        assertEquals(DisplayEffect.PULSE, state.runtimeEffect)
+        assertEquals(DisplayEffect.PULSE, config.effect)
     }
 
     @Test

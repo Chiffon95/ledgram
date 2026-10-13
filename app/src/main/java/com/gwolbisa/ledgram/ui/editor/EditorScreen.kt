@@ -54,6 +54,7 @@ import com.gwolbisa.ledgram.R
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.model.DisplayEffect
 import com.gwolbisa.ledgram.model.RenderStyle
+import com.gwolbisa.ledgram.model.isTextGlowEffectImplemented
 import com.gwolbisa.ledgram.ui.components.LedPreview
 import com.gwolbisa.ledgram.ui.theme.LedAmber
 import com.gwolbisa.ledgram.ui.theme.LedMuted
@@ -433,11 +434,10 @@ private fun EffectSelector(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             effects.forEach { (effect, label) ->
-                val implemented = effect == DisplayEffect.STATIC
                 FilterChip(
                     selected = selected == effect,
                     onClick = { onSelected(effect) },
-                    enabled = implemented,
+                    enabled = effect.isTextGlowEffectImplemented(),
                     label = { Text(stringResource(label)) },
                 )
             }

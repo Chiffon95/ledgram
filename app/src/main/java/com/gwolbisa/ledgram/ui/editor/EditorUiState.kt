@@ -5,6 +5,7 @@ import androidx.compose.runtime.saveable.listSaver
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.model.DisplayEffect
 import com.gwolbisa.ledgram.model.RenderStyle
+import com.gwolbisa.ledgram.model.forCurrentRuntime
 import com.gwolbisa.ledgram.ui.theme.BrandColorValue
 import com.gwolbisa.ledgram.util.normalizeMessageForDisplay
 import com.gwolbisa.ledgram.util.normalizeMessageInput
@@ -71,9 +72,4 @@ data class EditorUiState(
             },
         )
     }
-}
-
-private fun DisplayEffect.forCurrentRuntime(): DisplayEffect = when (this) {
-    DisplayEffect.STATIC -> this
-    else -> DisplayEffect.STATIC
 }

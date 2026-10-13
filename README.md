@@ -17,22 +17,24 @@ Implemented:
 - Single-module Android project skeleton
 - Portrait Editor → landscape fullscreen Display flow
 - Live Editor preview with an empty-input sample
-- Static Text + Glow rendering with bold, italic, and underline styles
+- Text + Glow rendering with Static, Blink, Pulse, and Fade effects plus bold, italic, and underline styles
+- Basic and custom text/background colors with HSV sliders, HEX input, swap, contrast warnings, and session-only recent colors
 - Immersive Display mode, maximum window brightness, and keep-screen-on behavior
 - Tap-to-show Exit overlay
 
 Planned:
 
 - Dot-Matrix rendering
-- Marquee, blink, pulse, and fade effects
-- Color selection and saved preferences
+- Left-to-right and right-to-left marquee effects
+- Effect speed controls
+- Persistent color and editor preferences
 - AdMob and UMP consent support
 - Firebase Analytics and Crashlytics
 - Localization settings and final production branding
 
 ## Milestone 1 scope
 
-This milestone focuses on editing a single-line message, previewing it, opening it in a landscape fullscreen display, and returning to the Editor. The visible future render/effect choices are intentionally disabled until later milestones. There is no persistence, advertising, analytics, or network access.
+The current MVP supports editing and previewing a single-line message, choosing text styles and colors, and opening Static, Blink, Pulse, or Fade Text + Glow output in a landscape fullscreen display. Preview rendering remains static. Marquee directions, Dot Matrix, and effect speed controls are not implemented yet. Recent colors last only for the current Editor session; there is no app-restart persistence, advertising, analytics, or network access.
 
 ## Technology stack
 
@@ -54,7 +56,7 @@ app/src/main/java/com/gwolbisa/ledgram/
 │   ├── display/    # Landscape fullscreen display
 │   ├── editor/     # Portrait message editor
 │   └── theme/      # Material theme and brand colors
-└── util/           # Message normalization utilities
+└── util/           # Message, color, contrast, and recent-color utilities
 ```
 
 ## Requirements
