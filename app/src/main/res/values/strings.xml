@@ -23,6 +23,22 @@
     <string name="bold">Bold</string>
     <string name="italic">Italic</string>
     <string name="underline">Underline</string>
+    <string name="color_label">Colors</string>
+    <string name="text_color">Text</string>
+    <string name="background_color">Background</string>
+    <string name="swap_colors">Swap colors</string>
+    <string name="select_color">Select %1$s</string>
+    <string name="color_white">White</string>
+    <string name="color_black">Black</string>
+    <string name="color_red">Red</string>
+    <string name="color_orange">Orange</string>
+    <string name="color_yellow">Yellow</string>
+    <string name="color_green">Green</string>
+    <string name="color_cyan">Cyan</string>
+    <string name="color_blue">Blue</string>
+    <string name="color_purple">Purple</string>
+    <string name="color_pink">Pink</string>
+    <string name="low_color_contrast_warning">Text and background colors are too similar and may be hard to read.</string>
     <string name="start_display">Start Display</string>
     <string name="exit_display">Exit</string>
 </resources>

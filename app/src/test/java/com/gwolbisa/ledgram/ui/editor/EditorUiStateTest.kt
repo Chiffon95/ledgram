@@ -45,6 +45,21 @@ class EditorUiStateTest {
     }
 
     @Test
+    fun `swap colors exchanges text and background values`() {
+        val state = EditorUiState(
+            textColor = 0xFFFF3B30,
+            backgroundColor = 0xFF007AFF,
+        )
+
+        val swapped = state.swapColors()
+
+        assertEquals(0xFF007AFF, swapped.textColor)
+        assertEquals(0xFFFF3B30, swapped.backgroundColor)
+        assertEquals(0xFF007AFF, swapped.toDisplayConfig().textColor)
+        assertEquals(0xFFFF3B30, swapped.toDisplayConfig().backgroundColor)
+    }
+
+    @Test
     fun `start availability ignores surrounding whitespace`() {
         assertFalse(EditorUiState(message = " \t ").canStartDisplay)
         assertTrue(EditorUiState(message = "  LEDgram  ").canStartDisplay)

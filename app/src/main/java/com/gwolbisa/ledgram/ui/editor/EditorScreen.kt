@@ -1,5 +1,8 @@
 package com.gwolbisa.ledgram.ui.editor
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,25 +13,39 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,8 +58,15 @@ import com.gwolbisa.ledgram.ui.theme.LedAmber
 import com.gwolbisa.ledgram.ui.theme.LedMuted
 import com.gwolbisa.ledgram.util.MAX_MESSAGE_LENGTH
 import com.gwolbisa.ledgram.util.codePointLength
+import com.gwolbisa.ledgram.util.isLowColorContrast
+import kotlinx.coroutines.launch
 
 private val EditorContentMaxWidth = 720.dp
+
+private enum class ColorTarget {
+    TEXT,
+    BACKGROUND,
+}
 
 @Composable
 fun EditorScreen(
@@ -52,14 +76,36 @@ fun EditorScreen(
     var uiState by rememberSaveable(stateSaver = EditorUiState.Saver) {
         mutableStateOf(EditorUiState())
     }
+    var colorTargetName by rememberSaveable { mutableStateOf(ColorTarget.TEXT.name) }
+    val colorTarget = ColorTarget.valueOf(colorTargetName)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val lowContrastWarning = stringResource(R.string.low_color_contrast_warning)
     val displayConfig = uiState.toDisplayConfig()
     val previewConfig = displayConfig.copy(
         message = displayConfig.message.ifEmpty { stringResource(R.string.preview_sample) },
     )
 
+    fun updateColors(nextState: EditorUiState) {
+        val colorsChanged = nextState.textColor != uiState.textColor ||
+            nextState.backgroundColor != uiState.backgroundColor
+        uiState = nextState
+        if (colorsChanged && isLowColorContrast(
+                nextState.textColor,
+                nextState.backgroundColor,
+            )
+        ) {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(lowContrastWarning)
+            }
+        }
+    }
+
     Scaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             EditorBottomActions(
                 enabled = uiState.canStartDisplay,
@@ -101,6 +147,21 @@ fun EditorScreen(
                     onMessageChange = { uiState = uiState.withMessage(it) },
                 )
                 Spacer(Modifier.height(28.dp))
+                ColorSelector(
+                    textColor = uiState.textColor,
+                    backgroundColor = uiState.backgroundColor,
+                    target = colorTarget,
+                    onTargetSelected = { colorTargetName = it.name },
+                    onColorSelected = { color ->
+                        val nextState = when (colorTarget) {
+                            ColorTarget.TEXT -> uiState.copy(textColor = color)
+                            ColorTarget.BACKGROUND -> uiState.copy(backgroundColor = color)
+                        }
+                        updateColors(nextState)
+                    },
+                    onSwapColors = { updateColors(uiState.swapColors()) },
+                )
+                Spacer(Modifier.height(28.dp))
                 RenderStyleSelector(
                     selected = uiState.renderStyle,
                     onSelected = { uiState = uiState.copy(renderStyle = it) },
@@ -125,6 +186,101 @@ fun EditorScreen(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ColorSelector(
+    textColor: Long,
+    backgroundColor: Long,
+    target: ColorTarget,
+    onTargetSelected: (ColorTarget) -> Unit,
+    onColorSelected: (Long) -> Unit,
+    onSwapColors: () -> Unit,
+) {
+    val selectedColor = when (target) {
+        ColorTarget.TEXT -> textColor
+        ColorTarget.BACKGROUND -> backgroundColor
+    }
+
+    Column {
+        SectionLabel(stringResource(R.string.color_label))
+        Spacer(Modifier.height(8.dp))
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            FilterChip(
+                selected = target == ColorTarget.TEXT,
+                onClick = { onTargetSelected(ColorTarget.TEXT) },
+                label = { Text(stringResource(R.string.text_color)) },
+                leadingIcon = { CurrentColorSwatch(textColor) },
+            )
+            FilterChip(
+                selected = target == ColorTarget.BACKGROUND,
+                onClick = { onTargetSelected(ColorTarget.BACKGROUND) },
+                label = { Text(stringResource(R.string.background_color)) },
+                leadingIcon = { CurrentColorSwatch(backgroundColor) },
+            )
+            OutlinedButton(onClick = onSwapColors) {
+                Text(stringResource(R.string.swap_colors))
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            EditorColorPalette.forEach { preset ->
+                ColorPresetButton(
+                    color = preset.value,
+                    selected = selectedColor == preset.value,
+                    contentDescription = stringResource(
+                        R.string.select_color,
+                        stringResource(preset.labelRes),
+                    ),
+                    onClick = { onColorSelected(preset.value) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CurrentColorSwatch(color: Long) {
+    Box(
+        modifier = Modifier
+            .size(16.dp)
+            .clip(CircleShape)
+            .background(Color(color))
+            .border(1.dp, LedMuted, CircleShape),
+    )
+}
+
+@Composable
+private fun ColorPresetButton(
+    color: Long,
+    selected: Boolean,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .background(Color(color))
+            .border(
+                width = if (selected) 3.dp else 1.dp,
+                color = if (selected) LedAmber else LedMuted,
+                shape = CircleShape,
+            )
+            .clickable(onClick = onClick)
+            .semantics {
+                this.contentDescription = contentDescription
+                this.role = Role.Button
+                this.selected = selected
+            },
+    )
 }
 
 @Composable

@@ -27,6 +27,11 @@ data class EditorUiState(
 
     fun withMessage(input: String): EditorUiState = copy(message = normalizeMessageInput(input))
 
+    fun swapColors(): EditorUiState = copy(
+        textColor = backgroundColor,
+        backgroundColor = textColor,
+    )
+
     fun toDisplayConfig(): DisplayConfig = DisplayConfig(
         message = normalizeMessageForDisplay(message),
         textColor = textColor,
