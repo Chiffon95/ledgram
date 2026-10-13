@@ -17,10 +17,10 @@ Implemented:
 - Single-module Android project skeleton
 - Portrait Editor → landscape fullscreen Display flow
 - Fixed Editor app bar and live preview, independently scrolling controls, and a navigation/keyboard-safe Start Display action
-- Animated Editor preview supporting every Motion + Visual Effect combination; empty input shows `Hello!` as a preview-only sample while the actual message remains empty and cannot be displayed fullscreen
+- Animated Editor preview supporting every Motion + Visual Effect combination; empty or whitespace-only input shows `Hello!` as a preview-only sample while the actual normalized message remains empty and cannot be displayed fullscreen
 - Text + Glow rendering with independent Motion (Static, R→L, L→R) and Visual Effect (None, Blink, Pulse, Fade) selectors, allowing every motion/effect combination
-- A shared 0.5x–2.0x speed control for marquee, Blink, Pulse, and Fade in both Preview and Display
-- Complete-message static fitting with centered multiline wrapping, improved visual centering, and glyph overscan that keeps italic text intact; marquees remain single-line and reveal the full message
+- Separate Motion Speed and Effect Speed controls with selectable values from 0.25x to 5.0x; motion speed changes only marquee travel, while effect speed changes only Blink, Pulse, and Fade timing in Preview and Display
+- Static display is always exactly one line and automatically shrinks long messages until the complete text fits without wrapping, ellipsis, truncation, or clipping; Preview follows the same rule, while marquees remain height-sized, single-line, and horizontally scrolling
 - Bold, italic, and underline text styles
 - Basic and custom text/background colors with HSV sliders, HEX input, swap, contrast warnings, and session-only recent colors
 - Immersive Display mode, maximum window brightness, and keep-screen-on behavior
@@ -37,17 +37,19 @@ Planned:
 
 ## Milestone 1 scope
 
-The current MVP supports editing a single-line logical message, choosing text styles and colors, and independently combining Static or bidirectional marquee motion with None, Blink, Pulse, or Fade in both the Editor preview and the landscape fullscreen Text + Glow display. One shared speed multiplier controls every animated motion/effect and applies equally to Preview and Display. Static output wraps and auto-fits the complete message without ellipsis; marquee output stays single-line and clipped to its viewport. Empty input shows a preview-only `Hello!` sample without changing editor state or enabling fullscreen display. The Settings screen reports the system-default language but does not switch languages in-app; its Privacy Policy and Open Source Licenses entries are placeholders. Dot Matrix is not implemented yet. Recent colors and speed selections last only for the current Editor session; there is no app-restart persistence, advertising, analytics, or network access.
+The current MVP supports editing a single-line logical message, choosing text styles and colors, and independently combining Static or bidirectional marquee motion with None, Blink, Pulse, or Fade in both the Editor preview and the landscape fullscreen Text + Glow display. Motion Speed and Effect Speed are independent 0.25x–5.0x controls: Motion Speed affects only horizontal marquee travel, and Effect Speed affects only Blink, Pulse, and Fade timing. Static output is always one line and shrinks as far as needed to show the complete message without wrapping or ellipsis; marquee output remains sized primarily by height and scrolls horizontal overflow through its viewport. Preview uses the same Static single-line fitting rule. Empty or whitespace-only input shows a preview-only `Hello!` sample without changing editor state, leaking into `DisplayConfig`, or enabling fullscreen display. The Settings screen reports the system-default language but does not switch languages in-app; its Privacy Policy and Open Source Licenses entries are placeholders. Dot Matrix is not implemented yet. Recent colors and speed selections last only for the current Editor session; there is no app-restart persistence, advertising, analytics, or network access.
 
 ## Technology stack
 
-- Kotlin
+- Android Gradle Plugin 9.4.1
+- Gradle 9.8.0
+- Kotlin 2.4.21
 - Jetpack Compose and Material 3
 - Three Android activities (`EditorActivity`, `DisplayActivity`, and `SettingsActivity`)
 - Gradle Kotlin DSL with a version catalog
 - AndroidX Core SplashScreen
 - minSdk 24, compileSdk 36, targetSdk 36
-- JVM 17
+- JDK/JVM 17
 
 ## Project structure
 

@@ -72,8 +72,9 @@ import com.gwolbisa.ledgram.util.addRecentColor
 import com.gwolbisa.ledgram.util.codePointLength
 import com.gwolbisa.ledgram.util.formatHexColor
 import com.gwolbisa.ledgram.util.isLowColorContrast
-import com.gwolbisa.ledgram.util.MAX_SPEED_MULTIPLIER
-import com.gwolbisa.ledgram.util.MIN_SPEED_MULTIPLIER
+import com.gwolbisa.ledgram.util.SUPPORTED_SPEED_MULTIPLIERS
+import com.gwolbisa.ledgram.util.normalizeEffectSpeedMultiplier
+import com.gwolbisa.ledgram.util.normalizeMotionSpeedMultiplier
 import com.gwolbisa.ledgram.util.normalizeSpeedMultiplier
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -221,11 +222,24 @@ fun EditorScreen(
                 )
                 Spacer(Modifier.height(28.dp))
                 SpeedSelector(
-                    speedMultiplier = uiState.speedMultiplier,
-                    enabled = uiState.motionEffect != MotionEffect.STATIC ||
-                        uiState.visualEffect != VisualEffect.NONE,
+                    label = stringResource(R.string.motion_speed_label),
+                    selectedSpeedMultiplier = uiState.motionSpeedMultiplier,
+                    enabled = uiState.motionEffect != MotionEffect.STATIC,
                     onSpeedChange = {
-                        uiState = uiState.copy(speedMultiplier = normalizeSpeedMultiplier(it))
+                        uiState = uiState.copy(
+                            motionSpeedMultiplier = normalizeMotionSpeedMultiplier(it),
+                        )
+                    },
+                )
+                Spacer(Modifier.height(28.dp))
+                SpeedSelector(
+                    label = stringResource(R.string.effect_speed_label),
+                    selectedSpeedMultiplier = uiState.effectSpeedMultiplier,
+                    enabled = uiState.visualEffect != VisualEffect.NONE,
+                    onSpeedChange = {
+                        uiState = uiState.copy(
+                            effectSpeedMultiplier = normalizeEffectSpeedMultiplier(it),
+                        )
                     },
                 )
                 Spacer(Modifier.height(28.dp))
@@ -247,11 +261,16 @@ fun EditorScreen(
 
 @Composable
 private fun SpeedSelector(
-    speedMultiplier: Float,
+    label: String,
+    selectedSpeedMultiplier: Float,
     enabled: Boolean,
     onSpeedChange: (Float) -> Unit,
 ) {
-    val normalizedSpeed = normalizeSpeedMultiplier(speedMultiplier)
+    val safeSpeedMultiplier = normalizeSpeedMultiplier(selectedSpeedMultiplier)
+    val selectedIndex = SUPPORTED_SPEED_MULTIPLIERS.indices.minBy { index ->
+        kotlin.math.abs(SUPPORTED_SPEED_MULTIPLIERS[index] - safeSpeedMultiplier)
+    }
+    val normalizedSpeed = SUPPORTED_SPEED_MULTIPLIERS[selectedIndex]
     val formattedSpeed = remember(normalizedSpeed) {
         NumberFormat.getNumberInstance().apply {
             minimumFractionDigits = 1
@@ -259,7 +278,6 @@ private fun SpeedSelector(
         }.format(normalizedSpeed)
     }
     val valueLabel = stringResource(R.string.speed_multiplier, formattedSpeed)
-    val speedLabel = stringResource(R.string.speed_label)
 
     Column {
         Row(
@@ -267,7 +285,7 @@ private fun SpeedSelector(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SectionLabel(speedLabel)
+            SectionLabel(label)
             Text(
                 text = valueLabel,
                 color = LedMuted,
@@ -275,17 +293,17 @@ private fun SpeedSelector(
             )
         }
         Slider(
-            value = normalizedSpeed,
+            value = selectedIndex.toFloat(),
             onValueChange = { value ->
-                onSpeedChange((value * 4f).roundToInt() / 4f)
+                onSpeedChange(SUPPORTED_SPEED_MULTIPLIERS[value.roundToInt()])
             },
             modifier = Modifier.semantics {
-                contentDescription = speedLabel
+                contentDescription = label
                 stateDescription = valueLabel
             },
             enabled = enabled,
-            valueRange = MIN_SPEED_MULTIPLIER..MAX_SPEED_MULTIPLIER,
-            steps = 5,
+            valueRange = 0f..SUPPORTED_SPEED_MULTIPLIERS.lastIndex.toFloat(),
+            steps = SUPPORTED_SPEED_MULTIPLIERS.size - 2,
         )
         Row(
             modifier = Modifier.fillMaxWidth(),

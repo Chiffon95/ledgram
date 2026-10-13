@@ -24,9 +24,17 @@ class TextFitTest {
     @Test
     fun `search uses technical floor when no size fits`() {
         assertEquals(
-            1f,
+            0.01f,
             findLargestFittingFontSize(maximumFontSizeSp = 64f) { false },
             0f,
         )
+    }
+
+    @Test
+    fun `search can shrink below one sp for exceptionally long text`() {
+        val result = findLargestFittingFontSize(maximumFontSizeSp = 64f) { it <= 0.5f }
+
+        assertTrue(result <= 0.5f)
+        assertTrue(result > 0.49f)
     }
 }

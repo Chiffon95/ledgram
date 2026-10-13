@@ -35,8 +35,8 @@ import androidx.compose.ui.unit.sp
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.model.MotionEffect
 import com.gwolbisa.ledgram.model.VisualEffect
-import com.gwolbisa.ledgram.util.scaledAnimationDurationMillis
-import com.gwolbisa.ledgram.util.scaledAnimationSpeed
+import com.gwolbisa.ledgram.util.scaledEffectDurationMillis
+import com.gwolbisa.ledgram.util.scaledMarqueeSpeed
 import kotlin.math.roundToInt
 
 internal object TextGlowEffectDefaults {
@@ -45,6 +45,7 @@ internal object TextGlowEffectDefaults {
     const val PULSE_HALF_CYCLE_MILLIS = 700
     const val FADE_HALF_CYCLE_MILLIS = 900
     const val PULSE_MIN_ALPHA = 0.55f
+    // Pulse starts at 1f and only scales down, so fitted text never grows past its bounds.
     const val PULSE_MIN_SCALE = 0.94f
     const val DISPLAY_MARQUEE_SPEED_DP_PER_SECOND = 90f
     const val PREVIEW_MARQUEE_SPEED_DP_PER_SECOND = 55f
@@ -80,7 +81,7 @@ internal fun TextGlowRenderer(
 
     val visualTransform = rememberVisualTransform(
         effect = config.visualEffect,
-        speedMultiplier = config.speedMultiplier,
+        effectSpeedMultiplier = config.effectSpeedMultiplier,
     )
     BoxWithConstraints(modifier = modifier.clipToBounds()) {
         val density = LocalDensity.current
@@ -114,9 +115,9 @@ internal fun TextGlowRenderer(
             -> MarqueeTextGlow(
                 config = config,
                 fontSize = effectiveMaximumFontSize,
-                speedDpPerSecond = scaledAnimationSpeed(
+                speedDpPerSecond = scaledMarqueeSpeed(
                     marqueeSpeedDpPerSecond,
-                    config.speedMultiplier,
+                    config.motionSpeedMultiplier,
                 ),
                 visualTransform = visualTransform,
                 modifier = Modifier.fillMaxSize(),
@@ -217,18 +218,18 @@ private fun MarqueeTextGlow(
 @Composable
 private fun rememberVisualTransform(
     effect: VisualEffect,
-    speedMultiplier: Float,
+    effectSpeedMultiplier: Float,
 ): VisualTransform = when (effect) {
     VisualEffect.NONE -> VisualTransform()
     VisualEffect.BLINK -> {
         val transition = rememberInfiniteTransition(label = "blinkTextGlow")
-        val visibleDuration = scaledAnimationDurationMillis(
+        val visibleDuration = scaledEffectDurationMillis(
             TextGlowEffectDefaults.BLINK_VISIBLE_MILLIS,
-            speedMultiplier,
+            effectSpeedMultiplier,
         )
-        val hiddenDuration = scaledAnimationDurationMillis(
+        val hiddenDuration = scaledEffectDurationMillis(
             TextGlowEffectDefaults.BLINK_HIDDEN_MILLIS,
-            speedMultiplier,
+            effectSpeedMultiplier,
         )
         val totalDuration = visibleDuration + hiddenDuration
         val alpha by transition.animateFloat(
@@ -253,9 +254,9 @@ private fun rememberVisualTransform(
         val transition = rememberInfiniteTransition(label = "pulseTextGlow")
         val animationSpec = infiniteRepeatable<Float>(
             animation = tween(
-                durationMillis = scaledAnimationDurationMillis(
+                durationMillis = scaledEffectDurationMillis(
                     TextGlowEffectDefaults.PULSE_HALF_CYCLE_MILLIS,
-                    speedMultiplier,
+                    effectSpeedMultiplier,
                 ),
                 easing = FastOutSlowInEasing,
             ),
@@ -283,9 +284,9 @@ private fun rememberVisualTransform(
             targetValue = 1f,
             animationSpec = infiniteRepeatable(
                 animation = tween(
-                    durationMillis = scaledAnimationDurationMillis(
+                    durationMillis = scaledEffectDurationMillis(
                         TextGlowEffectDefaults.FADE_HALF_CYCLE_MILLIS,
-                        speedMultiplier,
+                        effectSpeedMultiplier,
                     ),
                     easing = LinearEasing,
                 ),

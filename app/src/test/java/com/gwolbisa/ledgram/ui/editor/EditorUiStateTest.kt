@@ -23,7 +23,8 @@ class EditorUiStateTest {
             renderStyle = RenderStyle.DOT_MATRIX,
             motionEffect = MotionEffect.RIGHT_TO_LEFT,
             visualEffect = VisualEffect.PULSE,
-            speedMultiplier = 1.75f,
+            motionSpeedMultiplier = 2.5f,
+            effectSpeedMultiplier = 0.75f,
         )
 
         val config = state.toDisplayConfig()
@@ -39,7 +40,8 @@ class EditorUiStateTest {
         assertEquals(MotionEffect.RIGHT_TO_LEFT, config.motionEffect)
         assertEquals(VisualEffect.PULSE, state.visualEffect)
         assertEquals(VisualEffect.PULSE, config.visualEffect)
-        assertEquals(1.75f, config.speedMultiplier)
+        assertEquals(2.5f, config.motionSpeedMultiplier)
+        assertEquals(0.75f, config.effectSpeedMultiplier)
     }
 
     @Test
@@ -48,7 +50,8 @@ class EditorUiStateTest {
 
         assertEquals(BrandColorValue.TEXT, state.textColor)
         assertEquals(BrandColorValue.BACKGROUND, state.backgroundColor)
-        assertEquals(DEFAULT_SPEED_MULTIPLIER, state.speedMultiplier)
+        assertEquals(DEFAULT_SPEED_MULTIPLIER, state.motionSpeedMultiplier)
+        assertEquals(DEFAULT_SPEED_MULTIPLIER, state.effectSpeedMultiplier)
     }
 
     @Test
@@ -95,7 +98,20 @@ class EditorUiStateTest {
     }
 
     @Test
-    fun `saver restores selected speed multiplier`() {
+    fun `whitespace message uses sample only in preview config`() {
+        val state = EditorUiState(message = " \t ")
+
+        val previewConfig = state.toPreviewConfig("Hello!")
+        val displayConfig = state.toDisplayConfig()
+
+        assertEquals("Hello!", previewConfig.message)
+        assertEquals(" \t ", state.message)
+        assertEquals("", displayConfig.message)
+        assertFalse(state.canStartDisplay)
+    }
+
+    @Test
+    fun `saver restores independent speed multipliers`() {
         val restored = requireNotNull(
             EditorUiState.Saver.restore(
                 listOf(
@@ -108,13 +124,27 @@ class EditorUiStateTest {
                     RenderStyle.TEXT_GLOW.name,
                     MotionEffect.RIGHT_TO_LEFT.name,
                     VisualEffect.FADE.name,
-                    1.5f,
+                    5f,
+                    0.25f,
                 ),
             ),
         )
 
-        assertEquals(1.5f, restored.speedMultiplier)
-        assertEquals(1.5f, restored.toDisplayConfig().speedMultiplier)
+        assertEquals(5f, restored.motionSpeedMultiplier)
+        assertEquals(0.25f, restored.effectSpeedMultiplier)
+        assertEquals(5f, restored.toDisplayConfig().motionSpeedMultiplier)
+        assertEquals(0.25f, restored.toDisplayConfig().effectSpeedMultiplier)
+    }
+
+    @Test
+    fun `display config normalizes speed multipliers independently`() {
+        val config = EditorUiState(
+            motionSpeedMultiplier = 10f,
+            effectSpeedMultiplier = Float.NaN,
+        ).toDisplayConfig()
+
+        assertEquals(5f, config.motionSpeedMultiplier)
+        assertEquals(1f, config.effectSpeedMultiplier)
     }
 
     @Test

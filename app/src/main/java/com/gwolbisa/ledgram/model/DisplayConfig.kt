@@ -15,7 +15,8 @@ data class DisplayConfig(
     val renderStyle: RenderStyle,
     val motionEffect: MotionEffect,
     val visualEffect: VisualEffect,
-    val speedMultiplier: Float = DEFAULT_SPEED_MULTIPLIER,
+    val motionSpeedMultiplier: Float = DEFAULT_SPEED_MULTIPLIER,
+    val effectSpeedMultiplier: Float = DEFAULT_SPEED_MULTIPLIER,
 ) : Parcelable
 
 enum class RenderStyle {

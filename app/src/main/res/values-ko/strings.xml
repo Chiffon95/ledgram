@@ -20,7 +20,8 @@
     <string name="effect_blink">깜박임</string>
     <string name="effect_pulse">숨쉬기</string>
     <string name="effect_fade">부드러운 점멸</string>
-    <string name="speed_label">속도</string>
+    <string name="motion_speed_label">움직임 속도</string>
+    <string name="effect_speed_label">효과 속도</string>
     <string name="speed_slow">느리게</string>
     <string name="speed_fast">빠르게</string>
     <string name="speed_multiplier">%1$sx</string>

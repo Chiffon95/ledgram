@@ -81,8 +81,8 @@ fun LedText(
                             underline = underline,
                         ),
                         overflow = TextOverflow.Clip,
-                        softWrap = true,
-                        maxLines = Int.MAX_VALUE,
+                        softWrap = false,
+                        maxLines = 1,
                         constraints = Constraints(
                             maxWidth = availableWidthPx,
                             maxHeight = availableHeightPx,
@@ -105,8 +105,8 @@ fun LedText(
                     .fillMaxWidth()
                     .padding(horizontal = TextGlyphOverscan),
                 textAlign = TextAlign.Center,
-                maxLines = Int.MAX_VALUE,
-                softWrap = true,
+                maxLines = 1,
+                softWrap = false,
                 overflow = TextOverflow.Clip,
                 style = ledTextStyle(
                     color = color,
