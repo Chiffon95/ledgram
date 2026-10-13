@@ -34,7 +34,7 @@ internal fun isCompleteStaticTextLayout(
     lastLineEnd: Int,
     didOverflowWidth: Boolean,
     didOverflowHeight: Boolean,
-): Boolean = lineCount in 1..2 &&
+): Boolean = lineCount >= 1 &&
     lastLineEnd >= textLength &&
     !didOverflowWidth &&
     !didOverflowHeight

@@ -39,7 +39,7 @@ class TextFitTest {
     }
 
     @Test
-    fun `complete static layout accepts one or two complete lines`() {
+    fun `complete static layout accepts arbitrary complete line counts`() {
         assertTrue(
             isCompleteStaticTextLayout(
                 textLength = 12,
@@ -51,9 +51,9 @@ class TextFitTest {
         )
         assertTrue(
             isCompleteStaticTextLayout(
-                textLength = 40,
-                lineCount = 2,
-                lastLineEnd = 40,
+                textLength = 100,
+                lineCount = 50,
+                lastLineEnd = 100,
                 didOverflowWidth = false,
                 didOverflowHeight = false,
             ),
@@ -61,7 +61,7 @@ class TextFitTest {
     }
 
     @Test
-    fun `static layout rejects clipping overflow and more than two lines`() {
+    fun `static layout rejects incomplete and overflowing text`() {
         assertTrue(
             !isCompleteStaticTextLayout(
                 textLength = 40,
@@ -74,18 +74,27 @@ class TextFitTest {
         assertTrue(
             !isCompleteStaticTextLayout(
                 textLength = 40,
-                lineCount = 3,
+                lineCount = 2,
                 lastLineEnd = 40,
-                didOverflowWidth = false,
+                didOverflowWidth = true,
                 didOverflowHeight = false,
             ),
         )
         assertTrue(
             !isCompleteStaticTextLayout(
                 textLength = 40,
-                lineCount = 2,
+                lineCount = 4,
                 lastLineEnd = 40,
-                didOverflowWidth = true,
+                didOverflowWidth = false,
+                didOverflowHeight = true,
+            ),
+        )
+        assertTrue(
+            !isCompleteStaticTextLayout(
+                textLength = 0,
+                lineCount = 0,
+                lastLineEnd = 0,
+                didOverflowWidth = false,
                 didOverflowHeight = false,
             ),
         )

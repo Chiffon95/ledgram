@@ -5,6 +5,8 @@ coreKtx = "1.17.0"
 coreSplashscreen = "1.2.0"
 activityCompose = "1.12.2"
 composeBom = "2025.11.00"
+dataStore = "1.2.1"
+lifecycle = "2.10.0"
 junit = "4.13.2"
 
 [libraries]
@@ -17,6 +19,9 @@ androidx-compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "dataStore" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 junit = { module = "junit:junit", version.ref = "junit" }
 
 [plugins]

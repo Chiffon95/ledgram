@@ -20,9 +20,10 @@ Implemented:
 - Animated Editor preview supporting every Motion + Visual Effect combination; empty, whitespace-only, or newline-only input shows `Hello!` as a preview-only sample while the actual normalized message remains empty and cannot be displayed fullscreen
 - Text + Glow rendering with independently composited Motion (Static, R→L, L→R) and Visual Effect (None, Blink, Pulse, Fade) selectors; marquee Pulse scaling uses a direction-aware leading-edge pivot so visual effects do not alter the trajectory
 - Separate Motion Speed and Effect Speed controls with selectable values from 0.25x to 5.0x; motion speed changes only marquee travel, while effect speed changes only Blink, Pulse, and Fade timing in Preview and Display
-- Static display preserves an explicit line break, may auto-wrap, and fits the complete message on one or at most two centered lines without ellipsis, truncation, or clipping; marquees always render one scrolling line by showing a stored line break as a space, while switching back to Static restores the break
+- Static display preserves every explicit line break, may auto-wrap, and shrinks the complete centered multiline block to fit without an imposed line-count limit, ellipsis, truncation, or clipping; marquees always render one scrolling line by flattening stored line breaks only at render time, while switching back to Static restores the full multiline structure
 - Bold, italic, and underline text styles
 - Basic and custom text/background colors with HSV sliders, HEX input, swap, contrast warnings, and session-only recent colors
+- Preferences DataStore persistence for the stored multiline message, text/background colors, text styles, render style, Motion, Visual Effect, Motion Speed, and Effect Speed; the preview-only `Hello!` sample and recent colors are not persisted
 - Immersive Display mode, maximum window brightness, and keep-screen-on behavior
 - Tap-to-show Exit overlay
 - Settings action and a minimal Settings screen with system-language information, dynamic app version, studio details, and truthful Privacy Policy/Open Source Licenses placeholders
@@ -30,14 +31,13 @@ Implemented:
 Planned:
 
 - Dot-Matrix rendering
-- Persistent color and editor preferences
 - AdMob and UMP consent support
 - Firebase Analytics and Crashlytics
 - In-app language switching and final production legal content
 
 ## Milestone 1 scope
 
-The current MVP supports editing a message with at most one explicit line break, choosing text styles and colors, and independently combining Static or bidirectional marquee motion with None, Blink, Pulse, or Fade in both the Editor preview and the landscape fullscreen Text + Glow display. Motion and Visual Effect transforms are composited independently. During marquee Pulse, scale is anchored to the direction-aware leading edge so it cannot alter the horizontal trajectory. Motion Speed and Effect Speed are independent 0.25x–5.0x controls: Motion Speed affects only horizontal marquee travel, and Effect Speed affects only Blink, Pulse, and Fade timing. Static output preserves the explicit break, may also auto-wrap, and fits the complete message on one or at most two horizontally and vertically centered lines without ellipsis. Marquee output remains sized primarily by height and always scrolls one rendered line, replacing the stored break with a space only at render time; switching back to Static restores the two-line behavior. Preview follows the same motion-aware fitting rule. Empty, whitespace-only, or newline-only input shows a preview-only `Hello!` sample without changing editor state, leaking into `DisplayConfig`, or enabling fullscreen display. The Settings screen reports the system-default language but does not switch languages in-app; its Privacy Policy and Open Source Licenses entries are placeholders. Dot Matrix is not implemented yet. Recent colors and speed selections last only for the current Editor session; there is no app-restart persistence, advertising, analytics, or network access.
+The current MVP supports editing a 100-code-point message with any number of explicit line breaks, choosing text styles and colors, and independently combining Static or bidirectional marquee motion with None, Blink, Pulse, or Fade in both the Editor preview and the landscape fullscreen Text + Glow display. Motion and Visual Effect transforms are composited independently. During marquee Pulse, scale is anchored to the direction-aware leading edge so it cannot alter the horizontal trajectory. Motion Speed and Effect Speed are independent 0.25x–5.0x controls: Motion Speed affects only horizontal marquee travel, and Effect Speed affects only Blink, Pulse, and Fade timing. Static output preserves all explicit breaks, may also auto-wrap, and shrinks the complete horizontally and vertically centered multiline block to fit without ellipsis or a fixed line limit. Marquee output remains sized primarily by height and always scrolls one rendered line, collapsing stored line breaks and adjacent whitespace only when render content is derived; switching back to Static restores the exact stored multiline structure. Preview follows the same motion-aware rule. Preferences DataStore preserves the message, colors, text styles, render style, motion/effect selections, and both speeds across app restarts. Empty or whitespace-only input shows a preview-only `Hello!` sample without changing or persisting the editor message, leaking into `DisplayConfig`, or enabling fullscreen display. Recent colors remain session-only. The Settings screen reports the system-default language but does not switch languages in-app; its Privacy Policy and Open Source Licenses entries are placeholders. Dot Matrix is not implemented yet. There is no advertising, analytics, or network access.
 
 ## Technology stack
 
@@ -48,6 +48,8 @@ The current MVP supports editing a message with at most one explicit line break,
 - Three Android activities (`EditorActivity`, `DisplayActivity`, and `SettingsActivity`)
 - Gradle Kotlin DSL with a version catalog
 - AndroidX Core SplashScreen
+- AndroidX Preferences DataStore 1.2.1
+- AndroidX Lifecycle 2.10.0
 - minSdk 24, compileSdk 36, targetSdk 36
 - JDK/JVM 17
 
@@ -55,6 +57,7 @@ The current MVP supports editing a message with at most one explicit line break,
 
 ```text
 app/src/main/java/com/gwolbisa/ledgram/
+├── data/           # Preferences DataStore mapping and repository
 ├── model/          # Parcelable display configuration and enums
 ├── ui/
 │   ├── components/ # Shared LED preview/text rendering
@@ -93,7 +96,7 @@ The debug APK is generated under `app/build/outputs/apk/debug/` and is ignored b
 
 ## Privacy and analytics
 
-Milestone 1 requests no network permission and includes no ads, consent SDK, analytics, crash reporting, or user-data persistence. These planned integrations must receive an explicit privacy review before they are introduced.
+Milestone 1 requests no network permission and includes no ads, consent SDK, analytics, crash reporting, or cloud upload. Preferences DataStore keeps only local Editor UI settings and the user-entered message; message content is not logged. Planned network integrations must receive an explicit privacy review before they are introduced.
 
 ## License
 

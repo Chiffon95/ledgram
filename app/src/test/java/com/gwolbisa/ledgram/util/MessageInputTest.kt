@@ -6,17 +6,17 @@ import org.junit.Test
 
 class MessageInputTest {
     @Test
-    fun `one newline is preserved and line endings are canonicalized`() {
-        assertEquals("HELLO\nWORLD", normalizeMessageInput("HELLO\nWORLD"))
-        assertEquals("HELLO\nWORLD", normalizeMessageInput("HELLO\r\nWORLD"))
-        assertEquals("HELLO\nWORLD", normalizeMessageInput("HELLO\rWORLD"))
+    fun `all newlines are preserved and line endings are canonicalized`() {
+        assertEquals("A\nB\nC", normalizeMessageInput("A\nB\nC"))
+        assertEquals("A\nB\nC\nD", normalizeMessageInput("A\r\nB\rC\nD"))
     }
 
     @Test
-    fun `subsequent and repeated newlines become a single separating space`() {
-        assertEquals("A\nB C", normalizeMessageInput("A\nB\nC"))
-        assertEquals("A\nB C", normalizeMessageInput("A\nB\n\nC"))
-        assertEquals("A\nB", normalizeMessageInput("A\n\nB"))
+    fun `repeated newlines remain stored while marquee rendering collapses whitespace`() {
+        val input = "HELLO\n\nWORLD\n\nLEDGRAM"
+
+        assertEquals(input, normalizeMessageInput(input))
+        assertEquals("HELLO WORLD LEDGRAM", normalizeMessageForMarqueeDisplay(input))
     }
 
     @Test
@@ -48,25 +48,41 @@ class MessageInputTest {
     }
 
     @Test
-    fun `display normalization is motion aware`() {
-        val input = "  HELLO\nWORLD  "
+    fun `one hundred code point multiline message is preserved`() {
+        val input = ("A\n".repeat(49)) + "😀B"
 
-        assertEquals("HELLO\nWORLD", normalizeMessageForStaticDisplay(input))
-        assertEquals("HELLO WORLD", normalizeMessageForMarqueeDisplay(input))
-        assertEquals("HELLO\nWORLD", normalizeMessageForDisplay(input, MotionEffect.STATIC))
+        assertEquals(MAX_MESSAGE_LENGTH, input.codePointLength())
+        assertEquals(input, normalizeMessageInput(input))
+    }
+
+    @Test
+    fun `display normalization is motion aware`() {
+        val input = "  HELLO\nWORLD\nLEDGRAM  "
+
+        assertEquals("HELLO\nWORLD\nLEDGRAM", normalizeMessageForStaticDisplay(input))
+        assertEquals("HELLO WORLD LEDGRAM", normalizeMessageForMarqueeDisplay(input))
+        assertEquals("HELLO\nWORLD\nLEDGRAM", normalizeMessageForDisplay(input, MotionEffect.STATIC))
         assertEquals(
-            "HELLO WORLD",
+            "HELLO WORLD LEDGRAM",
             normalizeMessageForDisplay(input, MotionEffect.RIGHT_TO_LEFT),
         )
         assertEquals(
-            "HELLO WORLD",
+            "HELLO WORLD LEDGRAM",
             normalizeMessageForDisplay(input, MotionEffect.LEFT_TO_RIGHT),
         )
     }
 
     @Test
+    fun `static display preserves leading and trailing explicit newlines`() {
+        val input = " \nHELLO\nWORLD\n "
+
+        assertEquals("\nHELLO\nWORLD\n", normalizeMessageForStaticDisplay(input))
+        assertEquals("HELLO WORLD", normalizeMessageForMarqueeDisplay(input))
+    }
+
+    @Test
     fun `whitespace and newline only display messages are blank`() {
-        listOf("", "   ", "\n", " \n ").forEach { input ->
+        listOf("", "   ", "\n", "\n\n", " \n \n \t").forEach { input ->
             assertEquals("", normalizeMessageForStaticDisplay(input))
             assertEquals("", normalizeMessageForMarqueeDisplay(input))
         }

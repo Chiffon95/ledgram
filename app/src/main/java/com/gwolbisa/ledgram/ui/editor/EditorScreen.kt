@@ -94,13 +94,12 @@ private enum class ColorTarget {
 
 @Composable
 fun EditorScreen(
+    uiState: EditorUiState,
+    onUiStateChange: (EditorUiState) -> Unit,
     onStartDisplay: (DisplayConfig) -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var uiState by rememberSaveable(stateSaver = EditorUiState.Saver) {
-        mutableStateOf(EditorUiState())
-    }
     var colorTargetName by rememberSaveable { mutableStateOf(ColorTarget.TEXT.name) }
     var customColorTargetName by rememberSaveable { mutableStateOf<String?>(null) }
     var recentColors by rememberSaveable(stateSaver = RecentColorsSaver) {
@@ -116,7 +115,7 @@ fun EditorScreen(
     fun updateColors(nextState: EditorUiState) {
         val colorsChanged = nextState.textColor != uiState.textColor ||
             nextState.backgroundColor != uiState.backgroundColor
-        uiState = nextState
+        onUiStateChange(nextState)
         if (colorsChanged && isLowColorContrast(
                 nextState.textColor,
                 nextState.backgroundColor,
@@ -192,7 +191,7 @@ fun EditorScreen(
                 Spacer(Modifier.height(20.dp))
                 MessageInput(
                     message = uiState.message,
-                    onMessageChange = { uiState = uiState.withMessage(it) },
+                    onMessageChange = { onUiStateChange(uiState.withMessage(it)) },
                 )
                 Spacer(Modifier.height(28.dp))
                 ColorSelector(
@@ -208,17 +207,17 @@ fun EditorScreen(
                 Spacer(Modifier.height(28.dp))
                 RenderStyleSelector(
                     selected = uiState.renderStyle,
-                    onSelected = { uiState = uiState.copy(renderStyle = it) },
+                    onSelected = { onUiStateChange(uiState.copy(renderStyle = it)) },
                 )
                 Spacer(Modifier.height(28.dp))
                 MotionSelector(
                     selected = uiState.motionEffect,
-                    onSelected = { uiState = uiState.copy(motionEffect = it) },
+                    onSelected = { onUiStateChange(uiState.copy(motionEffect = it)) },
                 )
                 Spacer(Modifier.height(28.dp))
                 VisualEffectSelector(
                     selected = uiState.visualEffect,
-                    onSelected = { uiState = uiState.copy(visualEffect = it) },
+                    onSelected = { onUiStateChange(uiState.copy(visualEffect = it)) },
                 )
                 Spacer(Modifier.height(28.dp))
                 SpeedSelector(
@@ -226,8 +225,10 @@ fun EditorScreen(
                     selectedSpeedMultiplier = uiState.motionSpeedMultiplier,
                     enabled = uiState.motionEffect != MotionEffect.STATIC,
                     onSpeedChange = {
-                        uiState = uiState.copy(
-                            motionSpeedMultiplier = normalizeMotionSpeedMultiplier(it),
+                        onUiStateChange(
+                            uiState.copy(
+                                motionSpeedMultiplier = normalizeMotionSpeedMultiplier(it),
+                            ),
                         )
                     },
                 )
@@ -237,8 +238,10 @@ fun EditorScreen(
                     selectedSpeedMultiplier = uiState.effectSpeedMultiplier,
                     enabled = uiState.visualEffect != VisualEffect.NONE,
                     onSpeedChange = {
-                        uiState = uiState.copy(
-                            effectSpeedMultiplier = normalizeEffectSpeedMultiplier(it),
+                        onUiStateChange(
+                            uiState.copy(
+                                effectSpeedMultiplier = normalizeEffectSpeedMultiplier(it),
+                            ),
                         )
                     },
                 )
@@ -247,10 +250,14 @@ fun EditorScreen(
                     bold = uiState.bold,
                     italic = uiState.italic,
                     underline = uiState.underline,
-                    onBoldChange = { uiState = uiState.copy(bold = !uiState.bold) },
-                    onItalicChange = { uiState = uiState.copy(italic = !uiState.italic) },
+                    onBoldChange = {
+                        onUiStateChange(uiState.copy(bold = !uiState.bold))
+                    },
+                    onItalicChange = {
+                        onUiStateChange(uiState.copy(italic = !uiState.italic))
+                    },
                     onUnderlineChange = {
-                        uiState = uiState.copy(underline = !uiState.underline)
+                        onUiStateChange(uiState.copy(underline = !uiState.underline))
                     },
                 )
                 Spacer(Modifier.height(32.dp))
@@ -512,7 +519,7 @@ private fun MessageInput(message: String, onMessageChange: (String) -> Unit) {
             placeholder = { Text(stringResource(R.string.message_placeholder)) },
             singleLine = false,
             minLines = 1,
-            maxLines = 2,
+            maxLines = 5,
             supportingText = {
                 Text(
                     text = stringResource(

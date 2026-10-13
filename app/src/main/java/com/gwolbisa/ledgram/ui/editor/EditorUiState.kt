@@ -1,7 +1,5 @@
 package com.gwolbisa.ledgram.ui.editor
 
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.listSaver
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.model.MotionEffect
 import com.gwolbisa.ledgram.model.RenderStyle
@@ -59,46 +57,4 @@ data class EditorUiState(
         }
     }
 
-    companion object {
-        val Saver: Saver<EditorUiState, Any> = listSaver(
-            save = { state ->
-                listOf(
-                    state.message,
-                    state.textColor,
-                    state.backgroundColor,
-                    state.bold,
-                    state.italic,
-                    state.underline,
-                    state.renderStyle.name,
-                    state.motionEffect.name,
-                    state.visualEffect.name,
-                    state.motionSpeedMultiplier,
-                    state.effectSpeedMultiplier,
-                )
-            },
-            restore = { values ->
-                EditorUiState(
-                    message = values[0] as String,
-                    textColor = (values[1] as Number).toLong(),
-                    backgroundColor = (values[2] as Number).toLong(),
-                    bold = values[3] as Boolean,
-                    italic = values[4] as Boolean,
-                    underline = values[5] as Boolean,
-                    renderStyle = RenderStyle.valueOf(values[6] as String),
-                    motionEffect = MotionEffect.valueOf(values[7] as String),
-                    visualEffect = VisualEffect.valueOf(values[8] as String),
-                    motionSpeedMultiplier = if (values.size > 9) {
-                        normalizeMotionSpeedMultiplier((values[9] as Number).toFloat())
-                    } else {
-                        DEFAULT_SPEED_MULTIPLIER
-                    },
-                    effectSpeedMultiplier = if (values.size > 10) {
-                        normalizeEffectSpeedMultiplier((values[10] as Number).toFloat())
-                    } else {
-                        DEFAULT_SPEED_MULTIPLIER
-                    },
-                )
-            },
-        )
-    }
 }

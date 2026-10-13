@@ -123,32 +123,6 @@ class EditorUiStateTest {
     }
 
     @Test
-    fun `saver restores independent speed multipliers`() {
-        val restored = requireNotNull(
-            EditorUiState.Saver.restore(
-                listOf(
-                    "LEDgram",
-                    BrandColorValue.TEXT,
-                    BrandColorValue.BACKGROUND,
-                    false,
-                    false,
-                    false,
-                    RenderStyle.TEXT_GLOW.name,
-                    MotionEffect.RIGHT_TO_LEFT.name,
-                    VisualEffect.FADE.name,
-                    5f,
-                    0.25f,
-                ),
-            ),
-        )
-
-        assertEquals(5f, restored.motionSpeedMultiplier)
-        assertEquals(0.25f, restored.effectSpeedMultiplier)
-        assertEquals(5f, restored.toDisplayConfig().motionSpeedMultiplier)
-        assertEquals(0.25f, restored.toDisplayConfig().effectSpeedMultiplier)
-    }
-
-    @Test
     fun `display config normalizes speed multipliers independently`() {
         val config = EditorUiState(
             motionSpeedMultiplier = 10f,
@@ -161,18 +135,19 @@ class EditorUiStateTest {
 
     @Test
     fun `switching motion changes rendering without mutating stored newline`() {
-        val staticState = EditorUiState().withMessage("HELLO\nWORLD")
+        val storedMessage = "HELLO\nWORLD\nLEDGRAM"
+        val staticState = EditorUiState().withMessage(storedMessage)
         val rightToLeftState = staticState.copy(motionEffect = MotionEffect.RIGHT_TO_LEFT)
         val leftToRightState = staticState.copy(motionEffect = MotionEffect.LEFT_TO_RIGHT)
         val restoredStaticState = rightToLeftState.copy(motionEffect = MotionEffect.STATIC)
 
-        assertEquals("HELLO\nWORLD", staticState.message)
-        assertEquals("HELLO\nWORLD", staticState.toDisplayConfig().message)
-        assertEquals("HELLO\nWORLD", rightToLeftState.message)
-        assertEquals("HELLO WORLD", rightToLeftState.toDisplayConfig().message)
-        assertEquals("HELLO WORLD", leftToRightState.toDisplayConfig().message)
-        assertEquals("HELLO\nWORLD", restoredStaticState.message)
-        assertEquals("HELLO\nWORLD", restoredStaticState.toDisplayConfig().message)
+        assertEquals(storedMessage, staticState.message)
+        assertEquals(storedMessage, staticState.toDisplayConfig().message)
+        assertEquals(storedMessage, rightToLeftState.message)
+        assertEquals("HELLO WORLD LEDGRAM", rightToLeftState.toDisplayConfig().message)
+        assertEquals("HELLO WORLD LEDGRAM", leftToRightState.toDisplayConfig().message)
+        assertEquals(storedMessage, restoredStaticState.message)
+        assertEquals(storedMessage, restoredStaticState.toDisplayConfig().message)
     }
 
     @Test
