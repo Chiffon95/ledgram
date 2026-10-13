@@ -28,7 +28,11 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -53,6 +57,8 @@ internal object TextGlowEffectDefaults {
     const val PREVIEW_MARQUEE_SPEED_DP_PER_SECOND = 55f
     const val MIN_MARQUEE_DURATION_MILLIS = 1_000
 }
+
+private val MarqueeVerticalSafetyPadding = 16.dp
 
 internal fun calculateMarqueeDurationMillis(
     travelDistancePx: Float,
@@ -182,8 +188,54 @@ private fun MarqueeTextGlow(
         contentAlignment = Alignment.CenterStart,
     ) {
         val density = LocalDensity.current
+        val textMeasurer = rememberTextMeasurer()
         val viewportWidthPx = with(density) { maxWidth.toPx() }
+        val availableHeightPx = with(density) {
+            (maxHeight - MarqueeVerticalSafetyPadding * 2)
+                .toPx()
+                .roundToInt()
+                .coerceAtLeast(1)
+        }
         val speedPxPerSecond = with(density) { speedDpPerSecond.dp.toPx() }
+        val fittedFontSize = remember(
+            config.message,
+            fontSize,
+            availableHeightPx,
+            config.bold,
+            config.italic,
+            config.underline,
+            density.fontScale,
+        ) {
+            findLargestFittingFontSize(fontSize.value) { candidateSize ->
+                val result = textMeasurer.measure(
+                    text = AnnotatedString(config.message),
+                    style = ledTextStyle(
+                        color = Color(config.textColor),
+                        fontSize = candidateSize.sp,
+                        bold = config.bold,
+                        italic = config.italic,
+                        underline = config.underline,
+                    ),
+                    overflow = TextOverflow.Clip,
+                    softWrap = false,
+                    maxLines = Int.MAX_VALUE,
+                    constraints = Constraints(
+                        maxWidth = Constraints.Infinity,
+                        maxHeight = availableHeightPx,
+                    ),
+                )
+                isCompleteMarqueeTextLayout(
+                    textLength = config.message.length,
+                    lineCount = result.lineCount,
+                    lastLineEnd = if (result.lineCount > 0) {
+                        result.getLineEnd(result.lineCount - 1)
+                    } else {
+                        0
+                    },
+                    didOverflowHeight = result.didOverflowHeight,
+                )
+            }
+        }
         var textWidthPx by remember { mutableIntStateOf(0) }
         val measurementsReady = viewportWidthPx > 0f && textWidthPx > 0
         val translationX = if (measurementsReady) {
@@ -242,12 +294,13 @@ private fun MarqueeTextGlow(
                     modifier = Modifier
                         .onSizeChanged { textWidthPx = it.width }
                         .padding(horizontal = TextGlyphOverscan),
-                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                    maxLines = Int.MAX_VALUE,
                     softWrap = false,
                     overflow = TextOverflow.Clip,
                     style = ledTextStyle(
                         color = Color(config.textColor),
-                        fontSize = fontSize,
+                        fontSize = fittedFontSize.sp,
                         bold = config.bold,
                         italic = config.italic,
                         underline = config.underline,

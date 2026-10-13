@@ -29,7 +29,7 @@ class EditorUiStateTest {
 
         val config = state.toDisplayConfig()
 
-        assertEquals("Hello world", config.message)
+        assertEquals("Hello\nworld", config.message)
         assertEquals(0xFFAABBCC, config.textColor)
         assertEquals(0xFF112233, config.backgroundColor)
         assertTrue(config.bold)
@@ -134,7 +134,7 @@ class EditorUiStateTest {
     }
 
     @Test
-    fun `switching motion changes rendering without mutating stored newline`() {
+    fun `every motion preserves stored multiline display content`() {
         val storedMessage = "HELLO\nWORLD\nLEDGRAM"
         val staticState = EditorUiState().withMessage(storedMessage)
         val rightToLeftState = staticState.copy(motionEffect = MotionEffect.RIGHT_TO_LEFT)
@@ -144,8 +144,8 @@ class EditorUiStateTest {
         assertEquals(storedMessage, staticState.message)
         assertEquals(storedMessage, staticState.toDisplayConfig().message)
         assertEquals(storedMessage, rightToLeftState.message)
-        assertEquals("HELLO WORLD LEDGRAM", rightToLeftState.toDisplayConfig().message)
-        assertEquals("HELLO WORLD LEDGRAM", leftToRightState.toDisplayConfig().message)
+        assertEquals(storedMessage, rightToLeftState.toDisplayConfig().message)
+        assertEquals(storedMessage, leftToRightState.toDisplayConfig().message)
         assertEquals(storedMessage, restoredStaticState.message)
         assertEquals(storedMessage, restoredStaticState.toDisplayConfig().message)
     }

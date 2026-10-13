@@ -64,6 +64,35 @@ class MarqueeTimingTest {
     }
 
     @Test
+    fun `multiline block uses the same symmetric bounds for the same layout width`() {
+        val singleLine = calculateMarqueeTravelBounds(
+            viewportWidthPx = 1_000f,
+            unscaledTextWidthPx = 600f,
+            motionEffect = MotionEffect.RIGHT_TO_LEFT,
+        )
+        val multiline = calculateMarqueeTravelBounds(
+            viewportWidthPx = 1_000f,
+            unscaledTextWidthPx = 600f,
+            motionEffect = MotionEffect.RIGHT_TO_LEFT,
+        )
+        val reverse = calculateMarqueeTravelBounds(
+            viewportWidthPx = 1_000f,
+            unscaledTextWidthPx = 600f,
+            motionEffect = MotionEffect.LEFT_TO_RIGHT,
+        )
+
+        assertEquals(singleLine, multiline)
+        assertEquals(1_000f, multiline.startPx)
+        assertEquals(-600f, multiline.endPx)
+        assertEquals(-600f, reverse.startPx)
+        assertEquals(1_000f, reverse.endPx)
+        assertEquals(
+            multiline.startPx - multiline.endPx,
+            reverse.endPx - reverse.startPx,
+        )
+    }
+
+    @Test
     fun `visual effect pivot follows motion direction`() {
         val staticOrigin = visualEffectTransformOrigin(MotionEffect.STATIC)
         val rightToLeftOrigin = visualEffectTransformOrigin(MotionEffect.RIGHT_TO_LEFT)

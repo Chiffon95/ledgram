@@ -1,6 +1,5 @@
 package com.gwolbisa.ledgram.util
 
-import com.gwolbisa.ledgram.model.MotionEffect
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -12,11 +11,11 @@ class MessageInputTest {
     }
 
     @Test
-    fun `repeated newlines remain stored while marquee rendering collapses whitespace`() {
+    fun `repeated newlines remain stored and rendered`() {
         val input = "HELLO\n\nWORLD\n\nLEDGRAM"
 
         assertEquals(input, normalizeMessageInput(input))
-        assertEquals("HELLO WORLD LEDGRAM", normalizeMessageForMarqueeDisplay(input))
+        assertEquals(input, normalizeMessageForDisplay(input))
     }
 
     @Test
@@ -56,35 +55,23 @@ class MessageInputTest {
     }
 
     @Test
-    fun `display normalization is motion aware`() {
+    fun `display normalization preserves multiline structure`() {
         val input = "  HELLO\nWORLD\nLEDGRAM  "
 
-        assertEquals("HELLO\nWORLD\nLEDGRAM", normalizeMessageForStaticDisplay(input))
-        assertEquals("HELLO WORLD LEDGRAM", normalizeMessageForMarqueeDisplay(input))
-        assertEquals("HELLO\nWORLD\nLEDGRAM", normalizeMessageForDisplay(input, MotionEffect.STATIC))
-        assertEquals(
-            "HELLO WORLD LEDGRAM",
-            normalizeMessageForDisplay(input, MotionEffect.RIGHT_TO_LEFT),
-        )
-        assertEquals(
-            "HELLO WORLD LEDGRAM",
-            normalizeMessageForDisplay(input, MotionEffect.LEFT_TO_RIGHT),
-        )
+        assertEquals("HELLO\nWORLD\nLEDGRAM", normalizeMessageForDisplay(input))
     }
 
     @Test
-    fun `static display preserves leading and trailing explicit newlines`() {
+    fun `display preserves leading and trailing explicit newlines`() {
         val input = " \nHELLO\nWORLD\n "
 
-        assertEquals("\nHELLO\nWORLD\n", normalizeMessageForStaticDisplay(input))
-        assertEquals("HELLO WORLD", normalizeMessageForMarqueeDisplay(input))
+        assertEquals("\nHELLO\nWORLD\n", normalizeMessageForDisplay(input))
     }
 
     @Test
     fun `whitespace and newline only display messages are blank`() {
         listOf("", "   ", "\n", "\n\n", " \n \n \t").forEach { input ->
-            assertEquals("", normalizeMessageForStaticDisplay(input))
-            assertEquals("", normalizeMessageForMarqueeDisplay(input))
+            assertEquals("", normalizeMessageForDisplay(input))
         }
     }
 }

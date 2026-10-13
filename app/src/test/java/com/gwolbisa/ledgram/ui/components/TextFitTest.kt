@@ -99,4 +99,53 @@ class TextFitTest {
             ),
         )
     }
+
+    @Test
+    fun `marquee height fitting reduces size as explicit line count increases`() {
+        fun fittedSize(lineCount: Int): Float = findLargestFittingFontSize(100f) { candidate ->
+            candidate * lineCount <= 100f
+        }
+
+        val sizes = listOf(1, 2, 3, 5).map(::fittedSize)
+
+        assertEquals(100f, sizes[0], 0.01f)
+        assertEquals(50f, sizes[1], 0.01f)
+        assertEquals(100f / 3f, sizes[2], 0.01f)
+        assertEquals(20f, sizes[3], 0.01f)
+        assertTrue(sizes.zipWithNext().all { (previous, next) -> next < previous })
+    }
+
+    @Test
+    fun `complete marquee layout accepts arbitrary explicit line counts`() {
+        listOf(1, 2, 3, 5).forEach { lineCount ->
+            assertTrue(
+                isCompleteMarqueeTextLayout(
+                    textLength = 100,
+                    lineCount = lineCount,
+                    lastLineEnd = 100,
+                    didOverflowHeight = false,
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `marquee layout rejects truncated or vertically overflowing blocks`() {
+        assertTrue(
+            !isCompleteMarqueeTextLayout(
+                textLength = 100,
+                lineCount = 5,
+                lastLineEnd = 99,
+                didOverflowHeight = false,
+            ),
+        )
+        assertTrue(
+            !isCompleteMarqueeTextLayout(
+                textLength = 100,
+                lineCount = 5,
+                lastLineEnd = 100,
+                didOverflowHeight = true,
+            ),
+        )
+    }
 }

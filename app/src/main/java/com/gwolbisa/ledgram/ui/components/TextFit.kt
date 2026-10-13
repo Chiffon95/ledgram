@@ -38,3 +38,12 @@ internal fun isCompleteStaticTextLayout(
     lastLineEnd >= textLength &&
     !didOverflowWidth &&
     !didOverflowHeight
+
+internal fun isCompleteMarqueeTextLayout(
+    textLength: Int,
+    lineCount: Int,
+    lastLineEnd: Int,
+    didOverflowHeight: Boolean,
+): Boolean = lineCount >= 1 &&
+    lastLineEnd >= textLength &&
+    !didOverflowHeight
