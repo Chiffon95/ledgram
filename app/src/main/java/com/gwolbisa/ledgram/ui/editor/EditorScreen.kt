@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -57,11 +58,17 @@ import com.gwolbisa.ledgram.ui.components.LedPreview
 import com.gwolbisa.ledgram.ui.theme.LedAmber
 import com.gwolbisa.ledgram.ui.theme.LedMuted
 import com.gwolbisa.ledgram.util.MAX_MESSAGE_LENGTH
+import com.gwolbisa.ledgram.util.addRecentColor
 import com.gwolbisa.ledgram.util.codePointLength
+import com.gwolbisa.ledgram.util.formatHexColor
 import com.gwolbisa.ledgram.util.isLowColorContrast
 import kotlinx.coroutines.launch
 
 private val EditorContentMaxWidth = 720.dp
+private val RecentColorsSaver = listSaver<List<Long>, Long>(
+    save = { it },
+    restore = { it },
+)
 
 private enum class ColorTarget {
     TEXT,
@@ -77,6 +84,10 @@ fun EditorScreen(
         mutableStateOf(EditorUiState())
     }
     var colorTargetName by rememberSaveable { mutableStateOf(ColorTarget.TEXT.name) }
+    var customColorTargetName by rememberSaveable { mutableStateOf<String?>(null) }
+    var recentColors by rememberSaveable(stateSaver = RecentColorsSaver) {
+        mutableStateOf(emptyList())
+    }
     val colorTarget = ColorTarget.valueOf(colorTargetName)
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -100,6 +111,36 @@ fun EditorScreen(
                 snackbarHostState.showSnackbar(lowContrastWarning)
             }
         }
+    }
+
+    fun applyColor(color: Long, target: ColorTarget) {
+        val nextState = when (target) {
+            ColorTarget.TEXT -> uiState.copy(textColor = color)
+            ColorTarget.BACKGROUND -> uiState.copy(backgroundColor = color)
+        }
+        updateColors(nextState)
+        recentColors = addRecentColor(recentColors, color)
+    }
+
+    customColorTargetName?.let { targetName ->
+        val customTarget = ColorTarget.valueOf(targetName)
+        val initialColor = when (customTarget) {
+            ColorTarget.TEXT -> uiState.textColor
+            ColorTarget.BACKGROUND -> uiState.backgroundColor
+        }
+        val targetLabel = when (customTarget) {
+            ColorTarget.TEXT -> stringResource(R.string.text_color)
+            ColorTarget.BACKGROUND -> stringResource(R.string.background_color)
+        }
+        CustomColorDialog(
+            initialColor = initialColor,
+            targetLabel = targetLabel,
+            onDismiss = { customColorTargetName = null },
+            onApply = { color ->
+                applyColor(color, customTarget)
+                customColorTargetName = null
+            },
+        )
     }
 
     Scaffold(
@@ -150,16 +191,12 @@ fun EditorScreen(
                 ColorSelector(
                     textColor = uiState.textColor,
                     backgroundColor = uiState.backgroundColor,
+                    recentColors = recentColors,
                     target = colorTarget,
                     onTargetSelected = { colorTargetName = it.name },
-                    onColorSelected = { color ->
-                        val nextState = when (colorTarget) {
-                            ColorTarget.TEXT -> uiState.copy(textColor = color)
-                            ColorTarget.BACKGROUND -> uiState.copy(backgroundColor = color)
-                        }
-                        updateColors(nextState)
-                    },
+                    onColorSelected = { color -> applyColor(color, colorTarget) },
                     onSwapColors = { updateColors(uiState.swapColors()) },
+                    onCustomColor = { customColorTargetName = colorTarget.name },
                 )
                 Spacer(Modifier.height(28.dp))
                 RenderStyleSelector(
@@ -193,10 +230,12 @@ fun EditorScreen(
 private fun ColorSelector(
     textColor: Long,
     backgroundColor: Long,
+    recentColors: List<Long>,
     target: ColorTarget,
     onTargetSelected: (ColorTarget) -> Unit,
     onColorSelected: (Long) -> Unit,
     onSwapColors: () -> Unit,
+    onCustomColor: () -> Unit,
 ) {
     val selectedColor = when (target) {
         ColorTarget.TEXT -> textColor
@@ -225,6 +264,9 @@ private fun ColorSelector(
             OutlinedButton(onClick = onSwapColors) {
                 Text(stringResource(R.string.swap_colors))
             }
+            OutlinedButton(onClick = onCustomColor) {
+                Text(stringResource(R.string.custom_color))
+            }
         }
         Spacer(Modifier.height(10.dp))
         FlowRow(
@@ -241,6 +283,31 @@ private fun ColorSelector(
                     ),
                     onClick = { onColorSelected(preset.value) },
                 )
+            }
+        }
+        if (recentColors.isNotEmpty()) {
+            Spacer(Modifier.height(14.dp))
+            Text(
+                text = stringResource(R.string.recent_colors),
+                color = LedMuted,
+                style = MaterialTheme.typography.labelMedium,
+            )
+            Spacer(Modifier.height(8.dp))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                recentColors.forEach { color ->
+                    ColorPresetButton(
+                        color = color,
+                        selected = selectedColor == color,
+                        contentDescription = stringResource(
+                            R.string.select_recent_color,
+                            formatHexColor(color),
+                        ),
+                        onClick = { onColorSelected(color) },
+                    )
+                }
             }
         }
     }

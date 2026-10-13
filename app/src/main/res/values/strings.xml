@@ -39,6 +39,18 @@
     <string name="color_purple">Purple</string>
     <string name="color_pink">Pink</string>
     <string name="low_color_contrast_warning">Text and background colors are too similar and may be hard to read.</string>
+    <string name="custom_color">Custom color</string>
+    <string name="custom_color_target">Editing %1$s color</string>
+    <string name="recent_colors">Recent colors</string>
+    <string name="select_recent_color">Select recent color %1$s</string>
+    <string name="custom_color_preview_description">Color preview %1$s</string>
+    <string name="hue_value">Hue: %1$d°</string>
+    <string name="saturation_value">Saturation: %1$d%%</string>
+    <string name="brightness_value">Brightness: %1$d%%</string>
+    <string name="hex_color">HEX</string>
+    <string name="invalid_hex_color">Invalid HEX color</string>
+    <string name="apply">Apply</string>
+    <string name="cancel">Cancel</string>
     <string name="start_display">Start Display</string>
     <string name="exit_display">Exit</string>
 </resources>

@@ -16,4 +16,16 @@
     <string name="color_purple">보라색</string>
     <string name="color_pink">분홍색</string>
     <string name="low_color_contrast_warning">글자색과 배경색이 비슷해 잘 보이지 않을 수 있습니다.</string>
+    <string name="custom_color">사용자 지정 색상</string>
+    <string name="custom_color_target">%1$s 색상 편집</string>
+    <string name="recent_colors">최근 색상</string>
+    <string name="select_recent_color">최근 색상 %1$s 선택</string>
+    <string name="custom_color_preview_description">색상 미리보기 %1$s</string>
+    <string name="hue_value">색조: %1$d°</string>
+    <string name="saturation_value">채도: %1$d%%</string>
+    <string name="brightness_value">밝기: %1$d%%</string>
+    <string name="hex_color">HEX</string>
+    <string name="invalid_hex_color">올바르지 않은 HEX 색상입니다</string>
+    <string name="apply">적용</string>
+    <string name="cancel">취소</string>
 </resources>
