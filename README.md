@@ -6,7 +6,7 @@ LEDgram is a lightweight Android LED signboard app that turns a phone screen int
 
 - **App name:** LEDgram
 - **Package:** `com.gwolbisa.ledgram`
-- **Studio:** Gwolbisa Studio
+- **Studio:** GWOL LABS
 
 ## Project status
 
