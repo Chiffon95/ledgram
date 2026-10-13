@@ -12,7 +12,8 @@ data class DisplayConfig(
     val italic: Boolean,
     val underline: Boolean,
     val renderStyle: RenderStyle,
-    val effect: DisplayEffect,
+    val motionEffect: MotionEffect,
+    val visualEffect: VisualEffect,
 ) : Parcelable
 
 enum class RenderStyle {
@@ -20,10 +21,14 @@ enum class RenderStyle {
     DOT_MATRIX,
 }
 
-enum class DisplayEffect {
+enum class MotionEffect {
     STATIC,
     RIGHT_TO_LEFT,
     LEFT_TO_RIGHT,
+}
+
+enum class VisualEffect {
+    NONE,
     BLINK,
     PULSE,
     FADE,

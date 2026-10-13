@@ -16,8 +16,11 @@ Implemented:
 
 - Single-module Android project skeleton
 - Portrait Editor → landscape fullscreen Display flow
-- Live Editor preview with an empty-input sample
-- Text + Glow rendering with Static, bidirectional marquee, Blink, Pulse, and Fade effects plus bold, italic, and underline styles
+- Fixed Editor app bar and live preview, independently scrolling controls, and a navigation/keyboard-safe Start Display action
+- Live Editor preview driven only by real editor state; empty input uses a visual `Hello!` field placeholder and leaves the preview empty
+- Text + Glow rendering with independent Motion (Static, R→L, L→R) and Visual Effect (None, Blink, Pulse, Fade) selectors, allowing every motion/effect combination
+- Complete-message static fitting with centered multiline wrapping, while marquees remain single-line and reveal the full message
+- Bold, italic, and underline text styles
 - Basic and custom text/background colors with HSV sliders, HEX input, swap, contrast warnings, and session-only recent colors
 - Immersive Display mode, maximum window brightness, and keep-screen-on behavior
 - Tap-to-show Exit overlay
@@ -33,7 +36,7 @@ Planned:
 
 ## Milestone 1 scope
 
-The current MVP supports editing and previewing a single-line message, choosing text styles and colors, and opening Static, left-to-right marquee, right-to-left marquee, Blink, Pulse, or Fade Text + Glow output in a landscape fullscreen display. Preview rendering remains static. Dot Matrix and effect speed controls are not implemented yet. Recent colors last only for the current Editor session; there is no app-restart persistence, advertising, analytics, or network access.
+The current MVP supports editing a single-line logical message, choosing text styles and colors, and independently combining Static or bidirectional marquee motion with None, Blink, Pulse, or Fade in the landscape fullscreen Text + Glow display. Static output wraps and auto-fits the complete message without ellipsis; marquee output stays single-line. The fixed Editor preview remains non-animated and shows only actual input. Dot Matrix and effect speed controls are not implemented yet. Recent colors last only for the current Editor session; there is no app-restart persistence, advertising, analytics, or network access.
 
 ## Technology stack
 

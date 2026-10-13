@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -29,6 +31,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,9 +55,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gwolbisa.ledgram.R
 import com.gwolbisa.ledgram.model.DisplayConfig
-import com.gwolbisa.ledgram.model.DisplayEffect
+import com.gwolbisa.ledgram.model.MotionEffect
 import com.gwolbisa.ledgram.model.RenderStyle
-import com.gwolbisa.ledgram.model.isTextGlowEffectImplemented
+import com.gwolbisa.ledgram.model.VisualEffect
 import com.gwolbisa.ledgram.ui.components.LedPreview
 import com.gwolbisa.ledgram.ui.theme.LedAmber
 import com.gwolbisa.ledgram.ui.theme.LedMuted
@@ -66,6 +69,7 @@ import com.gwolbisa.ledgram.util.isLowColorContrast
 import kotlinx.coroutines.launch
 
 private val EditorContentMaxWidth = 720.dp
+private val EditorPreviewHeight = 180.dp
 private val RecentColorsSaver = listSaver<List<Long>, Long>(
     save = { it },
     restore = { it },
@@ -94,9 +98,6 @@ fun EditorScreen(
     val coroutineScope = rememberCoroutineScope()
     val lowContrastWarning = stringResource(R.string.low_color_contrast_warning)
     val displayConfig = uiState.toDisplayConfig()
-    val previewConfig = displayConfig.copy(
-        message = displayConfig.message.ifEmpty { stringResource(R.string.preview_sample) },
-    )
 
     fun updateColors(nextState: EditorUiState) {
         val colorsChanged = nextState.textColor != uiState.textColor ||
@@ -148,6 +149,9 @@ fun EditorScreen(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            EditorTopArea(config = displayConfig)
+        },
         bottomBar = {
             EditorBottomActions(
                 enabled = uiState.canStartDisplay,
@@ -168,22 +172,7 @@ fun EditorScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp),
             ) {
-                Spacer(Modifier.height(18.dp))
-                Text(
-                    text = stringResource(R.string.editor_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = stringResource(R.string.editor_subtitle),
-                    color = LedMuted,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Spacer(Modifier.height(22.dp))
-                SectionLabel(stringResource(R.string.preview_label))
-                Spacer(Modifier.height(8.dp))
-                LedPreview(config = previewConfig)
-                Spacer(Modifier.height(26.dp))
+                Spacer(Modifier.height(20.dp))
                 MessageInput(
                     message = uiState.message,
                     onMessageChange = { uiState = uiState.withMessage(it) },
@@ -205,9 +194,14 @@ fun EditorScreen(
                     onSelected = { uiState = uiState.copy(renderStyle = it) },
                 )
                 Spacer(Modifier.height(28.dp))
-                EffectSelector(
-                    selected = uiState.runtimeEffect,
-                    onSelected = { uiState = uiState.copy(effect = it) },
+                MotionSelector(
+                    selected = uiState.motionEffect,
+                    onSelected = { uiState = uiState.copy(motionEffect = it) },
+                )
+                Spacer(Modifier.height(28.dp))
+                VisualEffectSelector(
+                    selected = uiState.visualEffect,
+                    onSelected = { uiState = uiState.copy(visualEffect = it) },
                 )
                 Spacer(Modifier.height(28.dp))
                 StyleSelector(
@@ -221,6 +215,47 @@ fun EditorScreen(
                     },
                 )
                 Spacer(Modifier.height(32.dp))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditorTopArea(config: DisplayConfig) {
+    Surface(
+        color = MaterialTheme.colorScheme.background,
+        shadowElevation = 4.dp,
+    ) {
+        Column {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text(
+                            text = stringResource(R.string.editor_title),
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = stringResource(R.string.editor_subtitle),
+                            color = LedMuted,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                },
+            )
+            Column(
+                modifier = Modifier
+                    .widthIn(max = EditorContentMaxWidth)
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally)
+                    .padding(start = 20.dp, end = 20.dp, bottom = 14.dp),
+            ) {
+                SectionLabel(stringResource(R.string.preview_label))
+                Spacer(Modifier.height(8.dp))
+                LedPreview(
+                    config = config,
+                    modifier = Modifier.height(EditorPreviewHeight),
+                )
             }
         }
     }
@@ -413,17 +448,45 @@ private fun RenderStyleSelector(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EffectSelector(
-    selected: DisplayEffect,
-    onSelected: (DisplayEffect) -> Unit,
+private fun MotionSelector(
+    selected: MotionEffect,
+    onSelected: (MotionEffect) -> Unit,
+) {
+    val motions = listOf(
+        MotionEffect.STATIC to R.string.motion_static,
+        MotionEffect.RIGHT_TO_LEFT to R.string.motion_right_to_left,
+        MotionEffect.LEFT_TO_RIGHT to R.string.motion_left_to_right,
+    )
+
+    Column {
+        SectionLabel(stringResource(R.string.motion_label))
+        Spacer(Modifier.height(8.dp))
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            motions.forEach { (motion, label) ->
+                FilterChip(
+                    selected = selected == motion,
+                    onClick = { onSelected(motion) },
+                    label = { Text(stringResource(label)) },
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun VisualEffectSelector(
+    selected: VisualEffect,
+    onSelected: (VisualEffect) -> Unit,
 ) {
     val effects = listOf(
-        DisplayEffect.STATIC to R.string.effect_static,
-        DisplayEffect.RIGHT_TO_LEFT to R.string.effect_right_to_left,
-        DisplayEffect.LEFT_TO_RIGHT to R.string.effect_left_to_right,
-        DisplayEffect.BLINK to R.string.effect_blink,
-        DisplayEffect.PULSE to R.string.effect_pulse,
-        DisplayEffect.FADE to R.string.effect_fade,
+        VisualEffect.NONE to R.string.effect_none,
+        VisualEffect.BLINK to R.string.effect_blink,
+        VisualEffect.PULSE to R.string.effect_pulse,
+        VisualEffect.FADE to R.string.effect_fade,
     )
 
     Column {
@@ -437,7 +500,6 @@ private fun EffectSelector(
                 FilterChip(
                     selected = selected == effect,
                     onClick = { onSelected(effect) },
-                    enabled = effect.isTextGlowEffectImplemented(),
                     label = { Text(stringResource(label)) },
                 )
             }
@@ -495,6 +557,9 @@ private fun SectionLabel(text: String) {
 @Composable
 private fun EditorBottomActions(enabled: Boolean, onStartDisplay: () -> Unit) {
     Surface(
+        modifier = Modifier
+            .navigationBarsPadding()
+            .imePadding(),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 12.dp,
     ) {

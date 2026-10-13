@@ -1,7 +1,8 @@
 package com.gwolbisa.ledgram.ui.editor
 
-import com.gwolbisa.ledgram.model.DisplayEffect
+import com.gwolbisa.ledgram.model.MotionEffect
 import com.gwolbisa.ledgram.model.RenderStyle
+import com.gwolbisa.ledgram.model.VisualEffect
 import com.gwolbisa.ledgram.ui.theme.BrandColorValue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -19,7 +20,8 @@ class EditorUiStateTest {
             italic = true,
             underline = true,
             renderStyle = RenderStyle.DOT_MATRIX,
-            effect = DisplayEffect.PULSE,
+            motionEffect = MotionEffect.RIGHT_TO_LEFT,
+            visualEffect = VisualEffect.PULSE,
         )
 
         val config = state.toDisplayConfig()
@@ -31,9 +33,10 @@ class EditorUiStateTest {
         assertTrue(config.italic)
         assertTrue(config.underline)
         assertEquals(RenderStyle.DOT_MATRIX, config.renderStyle)
-        assertEquals(DisplayEffect.PULSE, state.effect)
-        assertEquals(DisplayEffect.PULSE, state.runtimeEffect)
-        assertEquals(DisplayEffect.PULSE, config.effect)
+        assertEquals(MotionEffect.RIGHT_TO_LEFT, state.motionEffect)
+        assertEquals(MotionEffect.RIGHT_TO_LEFT, config.motionEffect)
+        assertEquals(VisualEffect.PULSE, state.visualEffect)
+        assertEquals(VisualEffect.PULSE, config.visualEffect)
     }
 
     @Test
@@ -63,5 +66,30 @@ class EditorUiStateTest {
     fun `start availability ignores surrounding whitespace`() {
         assertFalse(EditorUiState(message = " \t ").canStartDisplay)
         assertTrue(EditorUiState(message = "  LEDgram  ").canStartDisplay)
+    }
+
+    @Test
+    fun `empty message remains empty and cannot start display`() {
+        val state = EditorUiState()
+
+        assertEquals("", state.message)
+        assertEquals("", state.toDisplayConfig().message)
+        assertFalse(state.canStartDisplay)
+    }
+
+    @Test
+    fun `every motion and visual effect combination maps to display config`() {
+        MotionEffect.entries.forEach { motion ->
+            VisualEffect.entries.forEach { visual ->
+                val config = EditorUiState(
+                    message = "LEDgram",
+                    motionEffect = motion,
+                    visualEffect = visual,
+                ).toDisplayConfig()
+
+                assertEquals(motion, config.motionEffect)
+                assertEquals(visual, config.visualEffect)
+            }
+        }
     }
 }

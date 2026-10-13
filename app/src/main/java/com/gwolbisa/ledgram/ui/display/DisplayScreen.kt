@@ -41,8 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gwolbisa.ledgram.R
 import com.gwolbisa.ledgram.model.DisplayConfig
-import com.gwolbisa.ledgram.model.DisplayEffect
+import com.gwolbisa.ledgram.model.MotionEffect
 import com.gwolbisa.ledgram.model.RenderStyle
+import com.gwolbisa.ledgram.model.VisualEffect
 import com.gwolbisa.ledgram.ui.components.LedText
 import com.gwolbisa.ledgram.ui.components.ledTextStyle
 import kotlinx.coroutines.delay
@@ -53,6 +54,11 @@ private enum class MarqueeDirection {
     RIGHT_TO_LEFT,
     LEFT_TO_RIGHT,
 }
+
+private data class VisualTransform(
+    val alpha: Float = 1f,
+    val scale: Float = 1f,
+)
 
 @Composable
 fun DisplayScreen(
@@ -105,13 +111,29 @@ fun DisplayRenderer(
     modifier: Modifier = Modifier,
 ) {
     when (config.renderStyle) {
-        RenderStyle.TEXT_GLOW -> when (config.effect) {
-            DisplayEffect.STATIC -> StaticTextGlowRenderer(config, modifier)
-            DisplayEffect.RIGHT_TO_LEFT -> RightToLeftMarqueeTextGlowRenderer(config, modifier)
-            DisplayEffect.LEFT_TO_RIGHT -> LeftToRightMarqueeTextGlowRenderer(config, modifier)
-            DisplayEffect.BLINK -> BlinkTextGlowRenderer(config, modifier)
-            DisplayEffect.PULSE -> PulseTextGlowRenderer(config, modifier)
-            DisplayEffect.FADE -> FadeTextGlowRenderer(config, modifier)
+        RenderStyle.TEXT_GLOW -> {
+            val visualTransform = rememberVisualTransform(config.visualEffect)
+            when (config.motionEffect) {
+                MotionEffect.STATIC -> StaticTextGlowRenderer(
+                    config = config,
+                    visualTransform = visualTransform,
+                    modifier = modifier,
+                )
+
+                MotionEffect.RIGHT_TO_LEFT -> MarqueeTextGlowRenderer(
+                    config = config,
+                    direction = MarqueeDirection.RIGHT_TO_LEFT,
+                    visualTransform = visualTransform,
+                    modifier = modifier,
+                )
+
+                MotionEffect.LEFT_TO_RIGHT -> MarqueeTextGlowRenderer(
+                    config = config,
+                    direction = MarqueeDirection.LEFT_TO_RIGHT,
+                    visualTransform = visualTransform,
+                    modifier = modifier,
+                )
+            }
         }
 
         RenderStyle.DOT_MATRIX -> Unit
@@ -121,32 +143,14 @@ fun DisplayRenderer(
 @Composable
 private fun StaticTextGlowRenderer(
     config: DisplayConfig,
+    visualTransform: VisualTransform,
     modifier: Modifier = Modifier,
 ) {
-    BaseTextGlowRenderer(config = config, modifier = modifier)
-}
-
-@Composable
-private fun RightToLeftMarqueeTextGlowRenderer(
-    config: DisplayConfig,
-    modifier: Modifier = Modifier,
-) {
-    MarqueeTextGlowRenderer(
+    BaseTextGlowRenderer(
         config = config,
-        direction = MarqueeDirection.RIGHT_TO_LEFT,
         modifier = modifier,
-    )
-}
-
-@Composable
-private fun LeftToRightMarqueeTextGlowRenderer(
-    config: DisplayConfig,
-    modifier: Modifier = Modifier,
-) {
-    MarqueeTextGlowRenderer(
-        config = config,
-        direction = MarqueeDirection.LEFT_TO_RIGHT,
-        modifier = modifier,
+        alpha = visualTransform.alpha,
+        scale = visualTransform.scale,
     )
 }
 
@@ -154,6 +158,7 @@ private fun LeftToRightMarqueeTextGlowRenderer(
 private fun MarqueeTextGlowRenderer(
     config: DisplayConfig,
     direction: MarqueeDirection,
+    visualTransform: VisualTransform,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(
@@ -220,7 +225,9 @@ private fun MarqueeTextGlowRenderer(
                 .onSizeChanged { textWidthPx = it.width }
                 .graphicsLayer {
                     this.translationX = translationX
-                    alpha = if (measurementsReady) 1f else 0f
+                    alpha = if (measurementsReady) visualTransform.alpha else 0f
+                    scaleX = visualTransform.scale
+                    scaleY = visualTransform.scale
                 },
             maxLines = 1,
             softWrap = false,
@@ -237,86 +244,70 @@ private fun MarqueeTextGlowRenderer(
 }
 
 @Composable
-private fun BlinkTextGlowRenderer(
-    config: DisplayConfig,
-    modifier: Modifier = Modifier,
-) {
-    val transition = rememberInfiniteTransition(label = "blinkTextGlow")
-    val totalDuration = TextGlowEffectDefaults.BLINK_VISIBLE_MILLIS +
-        TextGlowEffectDefaults.BLINK_HIDDEN_MILLIS
-    val alpha by transition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = totalDuration
-                1f at 0
-                1f at TextGlowEffectDefaults.BLINK_VISIBLE_MILLIS
-                0f at TextGlowEffectDefaults.BLINK_VISIBLE_MILLIS + 1
-                0f at totalDuration - 1
-                1f at totalDuration
-            },
-        ),
-        label = "blinkAlpha",
-    )
+private fun rememberVisualTransform(effect: VisualEffect): VisualTransform = when (effect) {
+    VisualEffect.NONE -> VisualTransform()
+    VisualEffect.BLINK -> {
+        val transition = rememberInfiniteTransition(label = "blinkTextGlow")
+        val totalDuration = TextGlowEffectDefaults.BLINK_VISIBLE_MILLIS +
+            TextGlowEffectDefaults.BLINK_HIDDEN_MILLIS
+        val alpha by transition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = keyframes {
+                    durationMillis = totalDuration
+                    1f at 0
+                    1f at TextGlowEffectDefaults.BLINK_VISIBLE_MILLIS
+                    0f at TextGlowEffectDefaults.BLINK_VISIBLE_MILLIS + 1
+                    0f at totalDuration - 1
+                    1f at totalDuration
+                },
+            ),
+            label = "blinkAlpha",
+        )
+        VisualTransform(alpha = alpha)
+    }
 
-    BaseTextGlowRenderer(config = config, modifier = modifier, alpha = alpha)
-}
-
-@Composable
-private fun PulseTextGlowRenderer(
-    config: DisplayConfig,
-    modifier: Modifier = Modifier,
-) {
-    val transition = rememberInfiniteTransition(label = "pulseTextGlow")
-    val animationSpec = infiniteRepeatable<Float>(
-        animation = tween(
-            durationMillis = TextGlowEffectDefaults.PULSE_HALF_CYCLE_MILLIS,
-            easing = FastOutSlowInEasing,
-        ),
-        repeatMode = RepeatMode.Reverse,
-    )
-    val alpha by transition.animateFloat(
-        initialValue = 1f,
-        targetValue = TextGlowEffectDefaults.PULSE_MIN_ALPHA,
-        animationSpec = animationSpec,
-        label = "pulseAlpha",
-    )
-    val scale by transition.animateFloat(
-        initialValue = 1f,
-        targetValue = TextGlowEffectDefaults.PULSE_MIN_SCALE,
-        animationSpec = animationSpec,
-        label = "pulseScale",
-    )
-
-    BaseTextGlowRenderer(
-        config = config,
-        modifier = modifier,
-        alpha = alpha,
-        scale = scale,
-    )
-}
-
-@Composable
-private fun FadeTextGlowRenderer(
-    config: DisplayConfig,
-    modifier: Modifier = Modifier,
-) {
-    val transition = rememberInfiniteTransition(label = "fadeTextGlow")
-    val alpha by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
+    VisualEffect.PULSE -> {
+        val transition = rememberInfiniteTransition(label = "pulseTextGlow")
+        val animationSpec = infiniteRepeatable<Float>(
             animation = tween(
-                durationMillis = TextGlowEffectDefaults.FADE_HALF_CYCLE_MILLIS,
-                easing = LinearEasing,
+                durationMillis = TextGlowEffectDefaults.PULSE_HALF_CYCLE_MILLIS,
+                easing = FastOutSlowInEasing,
             ),
             repeatMode = RepeatMode.Reverse,
-        ),
-        label = "fadeAlpha",
-    )
+        )
+        val alpha by transition.animateFloat(
+            initialValue = 1f,
+            targetValue = TextGlowEffectDefaults.PULSE_MIN_ALPHA,
+            animationSpec = animationSpec,
+            label = "pulseAlpha",
+        )
+        val scale by transition.animateFloat(
+            initialValue = 1f,
+            targetValue = TextGlowEffectDefaults.PULSE_MIN_SCALE,
+            animationSpec = animationSpec,
+            label = "pulseScale",
+        )
+        VisualTransform(alpha = alpha, scale = scale)
+    }
 
-    BaseTextGlowRenderer(config = config, modifier = modifier, alpha = alpha)
+    VisualEffect.FADE -> {
+        val transition = rememberInfiniteTransition(label = "fadeTextGlow")
+        val alpha by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(
+                    durationMillis = TextGlowEffectDefaults.FADE_HALF_CYCLE_MILLIS,
+                    easing = LinearEasing,
+                ),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "fadeAlpha",
+        )
+        VisualTransform(alpha = alpha)
+    }
 }
 
 @Composable
@@ -337,7 +328,6 @@ private fun BaseTextGlowRenderer(
             italic = config.italic,
             underline = config.underline,
             maximumFontSize = heightBasedFontSize,
-            minimumFontSize = 4.sp,
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer {

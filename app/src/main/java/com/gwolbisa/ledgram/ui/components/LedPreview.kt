@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,12 +33,13 @@ fun LedPreview(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(216.dp)
             .clip(shape)
             .background(Color(config.backgroundColor))
             .border(1.dp, LedSurfaceRaised, shape),
         contentAlignment = Alignment.Center,
     ) {
+        if (config.message.isEmpty()) return@Box
+
         when (config.renderStyle) {
             RenderStyle.TEXT_GLOW -> LedText(
                 text = config.message,
@@ -48,7 +48,6 @@ fun LedPreview(
                 italic = config.italic,
                 underline = config.underline,
                 maximumFontSize = 52.sp,
-                minimumFontSize = 16.sp,
                 modifier = Modifier.fillMaxSize(),
             )
 
