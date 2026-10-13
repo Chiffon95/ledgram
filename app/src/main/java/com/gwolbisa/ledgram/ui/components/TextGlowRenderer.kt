@@ -1,11 +1,8 @@
 package com.gwolbisa.ledgram.ui.components
 
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
@@ -40,8 +37,6 @@ import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.model.MotionEffect
-import com.gwolbisa.ledgram.model.VisualEffect
-import com.gwolbisa.ledgram.util.scaledEffectDurationMillis
 import com.gwolbisa.ledgram.util.scaledMarqueeSpeed
 import kotlin.math.roundToInt
 
@@ -169,11 +164,6 @@ internal fun TextGlowRenderer(
         }
     }
 }
-
-private data class VisualTransform(
-    val alpha: Float = 1f,
-    val scale: Float = 1f,
-)
 
 @Composable
 private fun MarqueeTextGlow(
@@ -308,88 +298,5 @@ private fun MarqueeTextGlow(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun rememberVisualTransform(
-    effect: VisualEffect,
-    effectSpeedMultiplier: Float,
-): VisualTransform = when (effect) {
-    VisualEffect.NONE -> VisualTransform()
-    VisualEffect.BLINK -> {
-        val transition = rememberInfiniteTransition(label = "blinkTextGlow")
-        val visibleDuration = scaledEffectDurationMillis(
-            TextGlowEffectDefaults.BLINK_VISIBLE_MILLIS,
-            effectSpeedMultiplier,
-        )
-        val hiddenDuration = scaledEffectDurationMillis(
-            TextGlowEffectDefaults.BLINK_HIDDEN_MILLIS,
-            effectSpeedMultiplier,
-        )
-        val totalDuration = visibleDuration + hiddenDuration
-        val alpha by transition.animateFloat(
-            initialValue = 1f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = keyframes {
-                    durationMillis = totalDuration
-                    1f at 0
-                    1f at visibleDuration
-                    0f at (visibleDuration + 1).coerceAtMost(totalDuration)
-                    0f at totalDuration - 1
-                    1f at totalDuration
-                },
-            ),
-            label = "blinkAlpha",
-        )
-        VisualTransform(alpha = alpha)
-    }
-
-    VisualEffect.PULSE -> {
-        val transition = rememberInfiniteTransition(label = "pulseTextGlow")
-        val animationSpec = infiniteRepeatable<Float>(
-            animation = tween(
-                durationMillis = scaledEffectDurationMillis(
-                    TextGlowEffectDefaults.PULSE_HALF_CYCLE_MILLIS,
-                    effectSpeedMultiplier,
-                ),
-                easing = FastOutSlowInEasing,
-            ),
-            repeatMode = RepeatMode.Reverse,
-        )
-        val alpha by transition.animateFloat(
-            initialValue = 1f,
-            targetValue = TextGlowEffectDefaults.PULSE_MIN_ALPHA,
-            animationSpec = animationSpec,
-            label = "pulseAlpha",
-        )
-        val scale by transition.animateFloat(
-            initialValue = 1f,
-            targetValue = TextGlowEffectDefaults.PULSE_MIN_SCALE,
-            animationSpec = animationSpec,
-            label = "pulseScale",
-        )
-        VisualTransform(alpha = alpha, scale = scale)
-    }
-
-    VisualEffect.FADE -> {
-        val transition = rememberInfiniteTransition(label = "fadeTextGlow")
-        val alpha by transition.animateFloat(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(
-                    durationMillis = scaledEffectDurationMillis(
-                        TextGlowEffectDefaults.FADE_HALF_CYCLE_MILLIS,
-                        effectSpeedMultiplier,
-                    ),
-                    easing = LinearEasing,
-                ),
-                repeatMode = RepeatMode.Reverse,
-            ),
-            label = "fadeAlpha",
-        )
-        VisualTransform(alpha = alpha)
     }
 }

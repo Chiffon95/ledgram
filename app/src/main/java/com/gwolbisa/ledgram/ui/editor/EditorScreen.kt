@@ -250,6 +250,7 @@ fun EditorScreen(
                     bold = uiState.bold,
                     italic = uiState.italic,
                     underline = uiState.underline,
+                    enabled = uiState.renderStyle == RenderStyle.TEXT_GLOW,
                     onBoldChange = {
                         onUiStateChange(uiState.copy(bold = !uiState.bold))
                     },
@@ -559,13 +560,6 @@ private fun RenderStyleSelector(
                 label = { Text(stringResource(R.string.dot_matrix)) },
             )
         }
-        if (selected == RenderStyle.DOT_MATRIX) {
-            Text(
-                text = stringResource(R.string.coming_later),
-                color = LedMuted,
-                style = MaterialTheme.typography.labelSmall,
-            )
-        }
     }
 }
 
@@ -636,6 +630,7 @@ private fun StyleSelector(
     bold: Boolean,
     italic: Boolean,
     underline: Boolean,
+    enabled: Boolean,
     onBoldChange: () -> Unit,
     onItalicChange: () -> Unit,
     onUnderlineChange: () -> Unit,
@@ -650,16 +645,19 @@ private fun StyleSelector(
             FilterChip(
                 selected = bold,
                 onClick = onBoldChange,
+                enabled = enabled,
                 label = { Text(stringResource(R.string.bold), fontWeight = FontWeight.Bold) },
             )
             FilterChip(
                 selected = italic,
                 onClick = onItalicChange,
+                enabled = enabled,
                 label = { Text(stringResource(R.string.italic)) },
             )
             FilterChip(
                 selected = underline,
                 onClick = onUnderlineChange,
+                enabled = enabled,
                 label = { Text(stringResource(R.string.underline)) },
             )
         }

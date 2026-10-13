@@ -23,9 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gwolbisa.ledgram.R
 import com.gwolbisa.ledgram.model.DisplayConfig
-import com.gwolbisa.ledgram.model.RenderStyle
+import com.gwolbisa.ledgram.ui.components.LedRenderer
 import com.gwolbisa.ledgram.ui.components.TextGlowEffectDefaults
-import com.gwolbisa.ledgram.ui.components.TextGlowRenderer
 import kotlinx.coroutines.delay
 
 private const val OVERLAY_TIMEOUT_MILLIS = 3_000L
@@ -80,15 +79,11 @@ fun DisplayRenderer(
     config: DisplayConfig,
     modifier: Modifier = Modifier,
 ) {
-    when (config.renderStyle) {
-        RenderStyle.TEXT_GLOW -> TextGlowRenderer(
-            config = config,
-            marqueeSpeedDpPerSecond =
-                TextGlowEffectDefaults.DISPLAY_MARQUEE_SPEED_DP_PER_SECOND,
-            modifier = modifier,
-        )
-
-        RenderStyle.DOT_MATRIX -> Unit
-    }
+    LedRenderer(
+        config = config,
+        marqueeSpeedDpPerSecond =
+            TextGlowEffectDefaults.DISPLAY_MARQUEE_SPEED_DP_PER_SECOND,
+        modifier = modifier,
+    )
 }
 
