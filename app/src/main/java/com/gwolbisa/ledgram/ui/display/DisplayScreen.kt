@@ -16,21 +16,27 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gwolbisa.ledgram.R
@@ -38,9 +44,15 @@ import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.model.DisplayEffect
 import com.gwolbisa.ledgram.model.RenderStyle
 import com.gwolbisa.ledgram.ui.components.LedText
+import com.gwolbisa.ledgram.ui.components.ledTextStyle
 import kotlinx.coroutines.delay
 
 private const val OVERLAY_TIMEOUT_MILLIS = 3_000L
+
+private enum class MarqueeDirection {
+    RIGHT_TO_LEFT,
+    LEFT_TO_RIGHT,
+}
 
 @Composable
 fun DisplayScreen(
@@ -95,23 +107,15 @@ fun DisplayRenderer(
     when (config.renderStyle) {
         RenderStyle.TEXT_GLOW -> when (config.effect) {
             DisplayEffect.STATIC -> StaticTextGlowRenderer(config, modifier)
+            DisplayEffect.RIGHT_TO_LEFT -> RightToLeftMarqueeTextGlowRenderer(config, modifier)
+            DisplayEffect.LEFT_TO_RIGHT -> LeftToRightMarqueeTextGlowRenderer(config, modifier)
             DisplayEffect.BLINK -> BlinkTextGlowRenderer(config, modifier)
             DisplayEffect.PULSE -> PulseTextGlowRenderer(config, modifier)
             DisplayEffect.FADE -> FadeTextGlowRenderer(config, modifier)
-            DisplayEffect.RIGHT_TO_LEFT,
-            DisplayEffect.LEFT_TO_RIGHT -> UnimplementedEffectFallback(config, modifier)
         }
 
         RenderStyle.DOT_MATRIX -> Unit
     }
-}
-
-@Composable
-private fun UnimplementedEffectFallback(
-    config: DisplayConfig,
-    modifier: Modifier = Modifier,
-) {
-    StaticTextGlowRenderer(config, modifier)
 }
 
 @Composable
@@ -120,6 +124,116 @@ private fun StaticTextGlowRenderer(
     modifier: Modifier = Modifier,
 ) {
     BaseTextGlowRenderer(config = config, modifier = modifier)
+}
+
+@Composable
+private fun RightToLeftMarqueeTextGlowRenderer(
+    config: DisplayConfig,
+    modifier: Modifier = Modifier,
+) {
+    MarqueeTextGlowRenderer(
+        config = config,
+        direction = MarqueeDirection.RIGHT_TO_LEFT,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun LeftToRightMarqueeTextGlowRenderer(
+    config: DisplayConfig,
+    modifier: Modifier = Modifier,
+) {
+    MarqueeTextGlowRenderer(
+        config = config,
+        direction = MarqueeDirection.LEFT_TO_RIGHT,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun MarqueeTextGlowRenderer(
+    config: DisplayConfig,
+    direction: MarqueeDirection,
+    modifier: Modifier = Modifier,
+) {
+    BoxWithConstraints(
+        modifier = modifier.clipToBounds(),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        val density = LocalDensity.current
+        val viewportWidthPx = with(density) { maxWidth.toPx() }
+        val heightBasedFontSize = with(density) { (maxHeight * 0.72f).toSp() }
+        val speedPxPerSecond = with(density) {
+            TextGlowEffectDefaults.MARQUEE_SPEED_DP_PER_SECOND.dp.toPx()
+        }
+        var textWidthPx by remember { mutableIntStateOf(0) }
+        val measurementsReady = viewportWidthPx > 0f && textWidthPx > 0
+        val translationX = if (measurementsReady) {
+            key(
+                viewportWidthPx,
+                textWidthPx,
+                config.message,
+                config.bold,
+                config.italic,
+                config.underline,
+                direction,
+            ) {
+                val textWidth = textWidthPx.toFloat()
+                val travelDistance = viewportWidthPx + textWidth
+                val durationMillis = calculateMarqueeDurationMillis(
+                    travelDistancePx = travelDistance,
+                    speedPxPerSecond = speedPxPerSecond,
+                )
+                val start = when (direction) {
+                    MarqueeDirection.RIGHT_TO_LEFT -> viewportWidthPx
+                    MarqueeDirection.LEFT_TO_RIGHT -> -textWidth
+                }
+                val end = when (direction) {
+                    MarqueeDirection.RIGHT_TO_LEFT -> -textWidth
+                    MarqueeDirection.LEFT_TO_RIGHT -> viewportWidthPx
+                }
+                val transition = rememberInfiniteTransition(label = "marqueeTextGlow")
+                val offset by transition.animateFloat(
+                    initialValue = start,
+                    targetValue = end,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(
+                            durationMillis = durationMillis,
+                            easing = LinearEasing,
+                        ),
+                    ),
+                    label = "marqueeTranslationX",
+                )
+                offset
+            }
+        } else {
+            0f
+        }
+
+        Text(
+            text = config.message,
+            modifier = Modifier
+                .wrapContentWidth(
+                    align = Alignment.Start,
+                    unbounded = true,
+                )
+                .onSizeChanged { textWidthPx = it.width }
+                .graphicsLayer {
+                    this.translationX = translationX
+                    alpha = if (measurementsReady) 1f else 0f
+                },
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Clip,
+            style = ledTextStyle(
+                color = Color(config.textColor),
+                fontSize = heightBasedFontSize,
+                bold = config.bold,
+                italic = config.italic,
+                underline = config.underline,
+            ),
+        )
+    }
 }
 
 @Composable

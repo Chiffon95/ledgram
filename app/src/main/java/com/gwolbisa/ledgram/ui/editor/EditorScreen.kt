@@ -442,11 +442,6 @@ private fun EffectSelector(
                 )
             }
         }
-        Text(
-            text = stringResource(R.string.coming_later),
-            color = LedMuted,
-            style = MaterialTheme.typography.labelSmall,
-        )
     }
 }
 

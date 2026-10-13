@@ -17,7 +17,7 @@ Implemented:
 - Single-module Android project skeleton
 - Portrait Editor → landscape fullscreen Display flow
 - Live Editor preview with an empty-input sample
-- Text + Glow rendering with Static, Blink, Pulse, and Fade effects plus bold, italic, and underline styles
+- Text + Glow rendering with Static, bidirectional marquee, Blink, Pulse, and Fade effects plus bold, italic, and underline styles
 - Basic and custom text/background colors with HSV sliders, HEX input, swap, contrast warnings, and session-only recent colors
 - Immersive Display mode, maximum window brightness, and keep-screen-on behavior
 - Tap-to-show Exit overlay
@@ -25,7 +25,6 @@ Implemented:
 Planned:
 
 - Dot-Matrix rendering
-- Left-to-right and right-to-left marquee effects
 - Effect speed controls
 - Persistent color and editor preferences
 - AdMob and UMP consent support
@@ -34,7 +33,7 @@ Planned:
 
 ## Milestone 1 scope
 
-The current MVP supports editing and previewing a single-line message, choosing text styles and colors, and opening Static, Blink, Pulse, or Fade Text + Glow output in a landscape fullscreen display. Preview rendering remains static. Marquee directions, Dot Matrix, and effect speed controls are not implemented yet. Recent colors last only for the current Editor session; there is no app-restart persistence, advertising, analytics, or network access.
+The current MVP supports editing and previewing a single-line message, choosing text styles and colors, and opening Static, left-to-right marquee, right-to-left marquee, Blink, Pulse, or Fade Text + Glow output in a landscape fullscreen display. Preview rendering remains static. Dot Matrix and effect speed controls are not implemented yet. Recent colors last only for the current Editor session; there is no app-restart persistence, advertising, analytics, or network access.
 
 ## Technology stack
 
