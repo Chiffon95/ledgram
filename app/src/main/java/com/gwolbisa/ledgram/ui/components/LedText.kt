@@ -81,14 +81,24 @@ fun LedText(
                             underline = underline,
                         ),
                         overflow = TextOverflow.Clip,
-                        softWrap = false,
-                        maxLines = 1,
+                        softWrap = true,
+                        maxLines = 2,
                         constraints = Constraints(
                             maxWidth = availableWidthPx,
                             maxHeight = availableHeightPx,
                         ),
                     )
-                    !result.didOverflowWidth && !result.didOverflowHeight
+                    isCompleteStaticTextLayout(
+                        textLength = text.length,
+                        lineCount = result.lineCount,
+                        lastLineEnd = if (result.lineCount > 0) {
+                            result.getLineEnd(result.lineCount - 1)
+                        } else {
+                            0
+                        },
+                        didOverflowWidth = result.didOverflowWidth,
+                        didOverflowHeight = result.didOverflowHeight,
+                    )
                 }
             }
         }
@@ -105,8 +115,8 @@ fun LedText(
                     .fillMaxWidth()
                     .padding(horizontal = TextGlyphOverscan),
                 textAlign = TextAlign.Center,
-                maxLines = 1,
-                softWrap = false,
+                maxLines = 2,
+                softWrap = true,
                 overflow = TextOverflow.Clip,
                 style = ledTextStyle(
                     color = color,

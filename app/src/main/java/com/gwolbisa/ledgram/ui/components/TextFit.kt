@@ -27,3 +27,14 @@ internal fun findLargestFittingFontSize(
     }
     return lower
 }
+
+internal fun isCompleteStaticTextLayout(
+    textLength: Int,
+    lineCount: Int,
+    lastLineEnd: Int,
+    didOverflowWidth: Boolean,
+    didOverflowHeight: Boolean,
+): Boolean = lineCount in 1..2 &&
+    lastLineEnd >= textLength &&
+    !didOverflowWidth &&
+    !didOverflowHeight

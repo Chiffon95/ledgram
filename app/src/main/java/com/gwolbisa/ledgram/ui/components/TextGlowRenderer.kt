@@ -8,6 +8,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -67,6 +69,27 @@ internal fun calculateMarqueeDurationMillis(
         .coerceAtMost(Int.MAX_VALUE.toFloat())
         .roundToInt()
         .coerceAtLeast(TextGlowEffectDefaults.MIN_MARQUEE_DURATION_MILLIS)
+}
+
+internal data class MarqueeTravelBounds(
+    val startPx: Float,
+    val endPx: Float,
+)
+
+internal fun calculateMarqueeTravelBounds(
+    viewportWidthPx: Float,
+    unscaledTextWidthPx: Float,
+    motionEffect: MotionEffect,
+): MarqueeTravelBounds = if (motionEffect == MotionEffect.RIGHT_TO_LEFT) {
+    MarqueeTravelBounds(
+        startPx = viewportWidthPx,
+        endPx = -unscaledTextWidthPx,
+    )
+} else {
+    MarqueeTravelBounds(
+        startPx = -unscaledTextWidthPx,
+        endPx = viewportWidthPx,
+    )
 }
 
 @Composable
@@ -164,20 +187,15 @@ private fun MarqueeTextGlow(
                     travelDistancePx = viewportWidthPx + textWidth,
                     speedPxPerSecond = speedPxPerSecond,
                 )
-                val start = if (config.motionEffect == MotionEffect.RIGHT_TO_LEFT) {
-                    viewportWidthPx
-                } else {
-                    -textWidth
-                }
-                val end = if (config.motionEffect == MotionEffect.RIGHT_TO_LEFT) {
-                    -textWidth
-                } else {
-                    viewportWidthPx
-                }
+                val travelBounds = calculateMarqueeTravelBounds(
+                    viewportWidthPx = viewportWidthPx,
+                    unscaledTextWidthPx = textWidth,
+                    motionEffect = config.motionEffect,
+                )
                 val transition = rememberInfiniteTransition(label = "marqueeTextGlow")
                 val offset by transition.animateFloat(
-                    initialValue = start,
-                    targetValue = end,
+                    initialValue = travelBounds.startPx,
+                    targetValue = travelBounds.endPx,
                     animationSpec = infiniteRepeatable(
                         animation = tween(durationMillis = durationMillis, easing = LinearEasing),
                     ),
@@ -189,29 +207,39 @@ private fun MarqueeTextGlow(
             0f
         }
 
-        Text(
-            text = config.message,
+        Box(
             modifier = Modifier
                 .wrapContentWidth(align = Alignment.Start, unbounded = true)
-                .onSizeChanged { textWidthPx = it.width }
                 .graphicsLayer {
                     this.translationX = translationX
+                },
+        ) {
+            Box(
+                modifier = Modifier.graphicsLayer {
                     alpha = if (measurementsReady) visualTransform.alpha else 0f
                     scaleX = visualTransform.scale
                     scaleY = visualTransform.scale
-                }
-                .padding(horizontal = TextGlyphOverscan),
-            maxLines = 1,
-            softWrap = false,
-            overflow = TextOverflow.Clip,
-            style = ledTextStyle(
-                color = Color(config.textColor),
-                fontSize = fontSize,
-                bold = config.bold,
-                italic = config.italic,
-                underline = config.underline,
-            ),
-        )
+                    transformOrigin = TransformOrigin.Center
+                },
+            ) {
+                Text(
+                    text = config.message,
+                    modifier = Modifier
+                        .onSizeChanged { textWidthPx = it.width }
+                        .padding(horizontal = TextGlyphOverscan),
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Clip,
+                    style = ledTextStyle(
+                        color = Color(config.textColor),
+                        fontSize = fontSize,
+                        bold = config.bold,
+                        italic = config.italic,
+                        underline = config.underline,
+                    ),
+                )
+            }
+        }
     }
 }
 

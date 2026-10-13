@@ -1,7 +1,9 @@
 package com.gwolbisa.ledgram.ui.display
 
+import com.gwolbisa.ledgram.model.MotionEffect
 import com.gwolbisa.ledgram.ui.components.TextGlowEffectDefaults
 import com.gwolbisa.ledgram.ui.components.calculateMarqueeDurationMillis
+import com.gwolbisa.ledgram.ui.components.calculateMarqueeTravelBounds
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -39,5 +41,24 @@ class MarqueeTimingTest {
             TextGlowEffectDefaults.MIN_MARQUEE_DURATION_MILLIS,
             calculateMarqueeDurationMillis(1f, 10_000f),
         )
+    }
+
+    @Test
+    fun `travel bounds use viewport unscaled text width and direction only`() {
+        val rightToLeft = calculateMarqueeTravelBounds(
+            viewportWidthPx = 800f,
+            unscaledTextWidthPx = 300f,
+            motionEffect = MotionEffect.RIGHT_TO_LEFT,
+        )
+        val leftToRight = calculateMarqueeTravelBounds(
+            viewportWidthPx = 800f,
+            unscaledTextWidthPx = 300f,
+            motionEffect = MotionEffect.LEFT_TO_RIGHT,
+        )
+
+        assertEquals(800f, rightToLeft.startPx)
+        assertEquals(-300f, rightToLeft.endPx)
+        assertEquals(-300f, leftToRight.startPx)
+        assertEquals(800f, leftToRight.endPx)
     }
 }
