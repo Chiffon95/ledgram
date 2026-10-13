@@ -27,7 +27,7 @@ data class EditorUiState(
     val effectSpeedMultiplier: Float = DEFAULT_SPEED_MULTIPLIER,
 ) {
     val canStartDisplay: Boolean
-        get() = normalizeMessageForDisplay(message).isNotEmpty()
+        get() = normalizeMessageForDisplay(message, motionEffect).isNotEmpty()
 
     fun withMessage(input: String): EditorUiState = copy(message = normalizeMessageInput(input))
 
@@ -37,7 +37,7 @@ data class EditorUiState(
     )
 
     fun toDisplayConfig(): DisplayConfig = DisplayConfig(
-        message = normalizeMessageForDisplay(message),
+        message = normalizeMessageForDisplay(message, motionEffect),
         textColor = textColor,
         backgroundColor = backgroundColor,
         bold = bold,

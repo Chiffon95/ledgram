@@ -510,7 +510,9 @@ private fun MessageInput(message: String, onMessageChange: (String) -> Unit) {
             onValueChange = onMessageChange,
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text(stringResource(R.string.message_placeholder)) },
-            singleLine = true,
+            singleLine = false,
+            minLines = 1,
+            maxLines = 2,
             supportingText = {
                 Text(
                     text = stringResource(

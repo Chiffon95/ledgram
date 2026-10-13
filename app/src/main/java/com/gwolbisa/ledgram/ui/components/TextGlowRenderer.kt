@@ -92,6 +92,20 @@ internal fun calculateMarqueeTravelBounds(
     )
 }
 
+internal fun visualEffectTransformOrigin(motionEffect: MotionEffect): TransformOrigin =
+    when (motionEffect) {
+        MotionEffect.STATIC -> TransformOrigin.Center
+        MotionEffect.RIGHT_TO_LEFT -> TransformOrigin(
+            pivotFractionX = 0f,
+            pivotFractionY = 0.5f,
+        )
+
+        MotionEffect.LEFT_TO_RIGHT -> TransformOrigin(
+            pivotFractionX = 1f,
+            pivotFractionY = 0.5f,
+        )
+    }
+
 @Composable
 internal fun TextGlowRenderer(
     config: DisplayConfig,
@@ -129,6 +143,7 @@ internal fun TextGlowRenderer(
                         alpha = visualTransform.alpha
                         scaleX = visualTransform.scale
                         scaleY = visualTransform.scale
+                        transformOrigin = visualEffectTransformOrigin(config.motionEffect)
                     },
                 horizontalPadding = staticHorizontalPadding,
             )
@@ -219,7 +234,7 @@ private fun MarqueeTextGlow(
                     alpha = if (measurementsReady) visualTransform.alpha else 0f
                     scaleX = visualTransform.scale
                     scaleY = visualTransform.scale
-                    transformOrigin = TransformOrigin.Center
+                    transformOrigin = visualEffectTransformOrigin(config.motionEffect)
                 },
             ) {
                 Text(

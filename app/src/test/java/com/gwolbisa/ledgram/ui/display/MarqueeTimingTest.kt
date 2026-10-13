@@ -4,6 +4,7 @@ import com.gwolbisa.ledgram.model.MotionEffect
 import com.gwolbisa.ledgram.ui.components.TextGlowEffectDefaults
 import com.gwolbisa.ledgram.ui.components.calculateMarqueeDurationMillis
 import com.gwolbisa.ledgram.ui.components.calculateMarqueeTravelBounds
+import com.gwolbisa.ledgram.ui.components.visualEffectTransformOrigin
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -60,5 +61,19 @@ class MarqueeTimingTest {
         assertEquals(-300f, rightToLeft.endPx)
         assertEquals(-300f, leftToRight.startPx)
         assertEquals(800f, leftToRight.endPx)
+    }
+
+    @Test
+    fun `visual effect pivot follows motion direction`() {
+        val staticOrigin = visualEffectTransformOrigin(MotionEffect.STATIC)
+        val rightToLeftOrigin = visualEffectTransformOrigin(MotionEffect.RIGHT_TO_LEFT)
+        val leftToRightOrigin = visualEffectTransformOrigin(MotionEffect.LEFT_TO_RIGHT)
+
+        assertEquals(0.5f, staticOrigin.pivotFractionX)
+        assertEquals(0.5f, staticOrigin.pivotFractionY)
+        assertEquals(0f, rightToLeftOrigin.pivotFractionX)
+        assertEquals(0.5f, rightToLeftOrigin.pivotFractionY)
+        assertEquals(1f, leftToRightOrigin.pivotFractionX)
+        assertEquals(0.5f, leftToRightOrigin.pivotFractionY)
     }
 }

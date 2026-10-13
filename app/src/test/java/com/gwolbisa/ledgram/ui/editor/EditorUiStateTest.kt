@@ -72,6 +72,8 @@ class EditorUiStateTest {
     @Test
     fun `start availability ignores surrounding whitespace`() {
         assertFalse(EditorUiState(message = " \t ").canStartDisplay)
+        assertFalse(EditorUiState(message = "\n").canStartDisplay)
+        assertFalse(EditorUiState(message = " \n ").canStartDisplay)
         assertTrue(EditorUiState(message = "  LEDgram  ").canStartDisplay)
     }
 
@@ -111,6 +113,16 @@ class EditorUiStateTest {
     }
 
     @Test
+    fun `newline only message uses sample only in preview config`() {
+        val state = EditorUiState().withMessage(" \n ")
+
+        assertEquals(" \n ", state.message)
+        assertEquals("Hello!", state.toPreviewConfig("Hello!").message)
+        assertEquals("", state.toDisplayConfig().message)
+        assertFalse(state.canStartDisplay)
+    }
+
+    @Test
     fun `saver restores independent speed multipliers`() {
         val restored = requireNotNull(
             EditorUiState.Saver.restore(
@@ -145,6 +157,22 @@ class EditorUiStateTest {
 
         assertEquals(5f, config.motionSpeedMultiplier)
         assertEquals(1f, config.effectSpeedMultiplier)
+    }
+
+    @Test
+    fun `switching motion changes rendering without mutating stored newline`() {
+        val staticState = EditorUiState().withMessage("HELLO\nWORLD")
+        val rightToLeftState = staticState.copy(motionEffect = MotionEffect.RIGHT_TO_LEFT)
+        val leftToRightState = staticState.copy(motionEffect = MotionEffect.LEFT_TO_RIGHT)
+        val restoredStaticState = rightToLeftState.copy(motionEffect = MotionEffect.STATIC)
+
+        assertEquals("HELLO\nWORLD", staticState.message)
+        assertEquals("HELLO\nWORLD", staticState.toDisplayConfig().message)
+        assertEquals("HELLO\nWORLD", rightToLeftState.message)
+        assertEquals("HELLO WORLD", rightToLeftState.toDisplayConfig().message)
+        assertEquals("HELLO WORLD", leftToRightState.toDisplayConfig().message)
+        assertEquals("HELLO\nWORLD", restoredStaticState.message)
+        assertEquals("HELLO\nWORLD", restoredStaticState.toDisplayConfig().message)
     }
 
     @Test
