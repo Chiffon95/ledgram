@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">LEDgram</string>
+    <string name="editor_title">LEDgram</string>
+    <string name="editor_subtitle">화면으로 메시지를 선명하게 전하세요.</string>
+    <string name="preview_label">실시간 미리보기</string>
+    <string name="message_label">메시지</string>
     <string name="message_placeholder">Hello!</string>
+    <string name="character_counter">%1$d / %2$d</string>
+    <string name="render_style_label">렌더링 스타일</string>
+    <string name="text_glow">텍스트 + 글로우</string>
+    <string name="dot_matrix">도트 매트릭스</string>
+    <string name="coming_later">추후 제공</string>
     <string name="motion_label">움직임</string>
     <string name="motion_static">고정</string>
     <string name="motion_right_to_left">오른쪽 → 왼쪽</string>
@@ -10,9 +20,13 @@
     <string name="effect_blink">깜박임</string>
     <string name="effect_pulse">펄스</string>
     <string name="effect_fade">페이드</string>
+    <string name="text_style_label">글자 스타일</string>
+    <string name="bold">굵게</string>
+    <string name="italic">기울임</string>
+    <string name="underline">밑줄</string>
     <string name="color_label">색상</string>
-    <string name="text_color">글자</string>
-    <string name="background_color">배경</string>
+    <string name="text_color">글자색</string>
+    <string name="background_color">배경색</string>
     <string name="swap_colors">색상 바꾸기</string>
     <string name="select_color">%1$s 선택</string>
     <string name="color_white">흰색</string>
@@ -27,7 +41,7 @@
     <string name="color_pink">분홍색</string>
     <string name="low_color_contrast_warning">글자색과 배경색이 비슷해 잘 보이지 않을 수 있습니다.</string>
     <string name="custom_color">사용자 지정 색상</string>
-    <string name="custom_color_target">%1$s 색상 편집</string>
+    <string name="custom_color_target">%1$s 편집</string>
     <string name="recent_colors">최근 색상</string>
     <string name="select_recent_color">최근 색상 %1$s 선택</string>
     <string name="custom_color_preview_description">색상 미리보기 %1$s</string>
@@ -38,4 +52,20 @@
     <string name="invalid_hex_color">올바르지 않은 HEX 색상입니다</string>
     <string name="apply">적용</string>
     <string name="cancel">취소</string>
+    <string name="start_display">전체 화면으로 보기</string>
+    <string name="exit_display">나가기</string>
+    <string name="settings">설정</string>
+    <string name="navigate_back">뒤로 이동</string>
+    <string name="settings_language">언어</string>
+    <string name="settings_system_default">시스템 기본값</string>
+    <string name="settings_app_information">앱 정보</string>
+    <string name="settings_app_name">앱 이름</string>
+    <string name="settings_version">버전</string>
+    <string name="settings_studio">스튜디오</string>
+    <string name="studio_name">GWOL LABS</string>
+    <string name="settings_privacy_legal">개인정보 및 법적 고지</string>
+    <string name="settings_privacy_policy">개인정보 처리방침</string>
+    <string name="settings_open_source_licenses">오픈 소스 라이선스</string>
+    <string name="settings_not_available_yet">아직 제공되지 않음</string>
+    <string name="settings_coming_later">추후 제공</string>
 </resources>

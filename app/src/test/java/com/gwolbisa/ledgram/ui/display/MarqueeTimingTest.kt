@@ -1,5 +1,7 @@
 package com.gwolbisa.ledgram.ui.display
 
+import com.gwolbisa.ledgram.ui.components.TextGlowEffectDefaults
+import com.gwolbisa.ledgram.ui.components.calculateMarqueeDurationMillis
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

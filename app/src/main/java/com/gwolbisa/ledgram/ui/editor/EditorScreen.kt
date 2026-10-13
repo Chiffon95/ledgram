@@ -23,6 +23,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
@@ -45,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -83,6 +86,7 @@ private enum class ColorTarget {
 @Composable
 fun EditorScreen(
     onStartDisplay: (DisplayConfig) -> Unit,
+    onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var uiState by rememberSaveable(stateSaver = EditorUiState.Saver) {
@@ -150,7 +154,10 @@ fun EditorScreen(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            EditorTopArea(config = displayConfig)
+            EditorTopArea(
+                config = displayConfig,
+                onOpenSettings = onOpenSettings,
+            )
         },
         bottomBar = {
             EditorBottomActions(
@@ -222,7 +229,10 @@ fun EditorScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EditorTopArea(config: DisplayConfig) {
+private fun EditorTopArea(
+    config: DisplayConfig,
+    onOpenSettings: () -> Unit,
+) {
     Surface(
         color = MaterialTheme.colorScheme.background,
         shadowElevation = 4.dp,
@@ -239,6 +249,14 @@ private fun EditorTopArea(config: DisplayConfig) {
                             text = stringResource(R.string.editor_subtitle),
                             color = LedMuted,
                             style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_settings),
+                            contentDescription = stringResource(R.string.settings),
                         )
                     }
                 },

@@ -41,14 +41,13 @@ fun LedPreview(
         if (config.message.isEmpty()) return@Box
 
         when (config.renderStyle) {
-            RenderStyle.TEXT_GLOW -> LedText(
-                text = config.message,
-                color = Color(config.textColor),
-                bold = config.bold,
-                italic = config.italic,
-                underline = config.underline,
-                maximumFontSize = 52.sp,
+            RenderStyle.TEXT_GLOW -> TextGlowRenderer(
+                config = config,
+                marqueeSpeedDpPerSecond =
+                    TextGlowEffectDefaults.PREVIEW_MARQUEE_SPEED_DP_PER_SECOND,
                 modifier = Modifier.fillMaxSize(),
+                maximumFontSize = 52.sp,
+                staticHorizontalPadding = 16.dp,
             )
 
             RenderStyle.DOT_MATRIX -> Text(

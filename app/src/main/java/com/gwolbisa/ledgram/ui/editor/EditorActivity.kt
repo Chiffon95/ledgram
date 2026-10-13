@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.ui.display.DisplayActivity
+import com.gwolbisa.ledgram.ui.settings.SettingsActivity
 import com.gwolbisa.ledgram.ui.theme.LEDgramTheme
 import com.gwolbisa.ledgram.util.applyOrientationPolicy
 
@@ -22,7 +23,10 @@ class EditorActivity : ComponentActivity() {
 
         setContent {
             LEDgramTheme {
-                EditorScreen(onStartDisplay = ::openDisplay)
+                EditorScreen(
+                    onStartDisplay = ::openDisplay,
+                    onOpenSettings = ::openSettings,
+                )
             }
         }
     }
@@ -46,6 +50,10 @@ class EditorActivity : ComponentActivity() {
             Intent(this, DisplayActivity::class.java)
                 .putExtra(DisplayActivity.EXTRA_DISPLAY_CONFIG, config),
         )
+    }
+
+    private fun openSettings() {
+        startActivity(Intent(this, SettingsActivity::class.java))
     }
 }
 

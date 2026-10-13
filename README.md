@@ -17,13 +17,14 @@ Implemented:
 - Single-module Android project skeleton
 - Portrait Editor → landscape fullscreen Display flow
 - Fixed Editor app bar and live preview, independently scrolling controls, and a navigation/keyboard-safe Start Display action
-- Live Editor preview driven only by real editor state; empty input uses a visual `Hello!` field placeholder and leaves the preview empty
+- Animated Editor preview driven only by real editor state; it supports every Motion + Visual Effect combination, while empty input uses a visual `Hello!` field placeholder and leaves the preview empty
 - Text + Glow rendering with independent Motion (Static, R→L, L→R) and Visual Effect (None, Blink, Pulse, Fade) selectors, allowing every motion/effect combination
 - Complete-message static fitting with centered multiline wrapping, while marquees remain single-line and reveal the full message
 - Bold, italic, and underline text styles
 - Basic and custom text/background colors with HSV sliders, HEX input, swap, contrast warnings, and session-only recent colors
 - Immersive Display mode, maximum window brightness, and keep-screen-on behavior
 - Tap-to-show Exit overlay
+- Settings action and a minimal Settings screen with system-language information, dynamic app version, studio details, and truthful Privacy Policy/Open Source Licenses placeholders
 
 Planned:
 
@@ -32,17 +33,17 @@ Planned:
 - Persistent color and editor preferences
 - AdMob and UMP consent support
 - Firebase Analytics and Crashlytics
-- Localization settings and final production branding
+- In-app language switching and final production legal content
 
 ## Milestone 1 scope
 
-The current MVP supports editing a single-line logical message, choosing text styles and colors, and independently combining Static or bidirectional marquee motion with None, Blink, Pulse, or Fade in the landscape fullscreen Text + Glow display. Static output wraps and auto-fits the complete message without ellipsis; marquee output stays single-line. The fixed Editor preview remains non-animated and shows only actual input. Dot Matrix and effect speed controls are not implemented yet. Recent colors last only for the current Editor session; there is no app-restart persistence, advertising, analytics, or network access.
+The current MVP supports editing a single-line logical message, choosing text styles and colors, and independently combining Static or bidirectional marquee motion with None, Blink, Pulse, or Fade in both the Editor preview and the landscape fullscreen Text + Glow display. Static output wraps and auto-fits the complete message without ellipsis; marquee output stays single-line and clipped to its viewport. The Settings screen reports the system-default language but does not switch languages in-app; its Privacy Policy and Open Source Licenses entries are placeholders. Dot Matrix and effect speed controls are not implemented yet. Recent colors last only for the current Editor session; there is no app-restart persistence, advertising, analytics, or network access.
 
 ## Technology stack
 
 - Kotlin
 - Jetpack Compose and Material 3
-- Two Android activities (`EditorActivity` and `DisplayActivity`)
+- Three Android activities (`EditorActivity`, `DisplayActivity`, and `SettingsActivity`)
 - Gradle Kotlin DSL with a version catalog
 - AndroidX Core SplashScreen
 - minSdk 24, compileSdk 36, targetSdk 36
@@ -57,6 +58,7 @@ app/src/main/java/com/gwolbisa/ledgram/
 │   ├── components/ # Shared LED preview/text rendering
 │   ├── display/    # Landscape fullscreen display
 │   ├── editor/     # Portrait message editor
+│   ├── settings/   # Minimal app information and legal placeholders
 │   └── theme/      # Material theme and brand colors
 └── util/           # Message, color, contrast, and recent-color utilities
 ```
