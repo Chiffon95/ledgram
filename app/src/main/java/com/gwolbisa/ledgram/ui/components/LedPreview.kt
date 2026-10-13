@@ -7,20 +7,27 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gwolbisa.ledgram.R
+import com.gwolbisa.ledgram.model.DisplayConfig
+import com.gwolbisa.ledgram.model.RenderStyle
 import com.gwolbisa.ledgram.ui.theme.LedSurfaceRaised
 
 @Composable
 fun LedPreview(
-    message: String,
-    bold: Boolean,
-    italic: Boolean,
-    underline: Boolean,
+    config: DisplayConfig,
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(20.dp)
@@ -29,19 +36,35 @@ fun LedPreview(
             .fillMaxWidth()
             .height(216.dp)
             .clip(shape)
-            .background(Color.Black)
+            .background(Color(config.backgroundColor))
             .border(1.dp, LedSurfaceRaised, shape),
+        contentAlignment = Alignment.Center,
     ) {
-        LedText(
-            text = message,
-            color = Color.White,
-            bold = bold,
-            italic = italic,
-            underline = underline,
-            maximumFontSize = 52.sp,
-            minimumFontSize = 16.sp,
-            modifier = Modifier.fillMaxSize(),
-        )
+        when (config.renderStyle) {
+            RenderStyle.TEXT_GLOW -> LedText(
+                text = config.message,
+                color = Color(config.textColor),
+                bold = config.bold,
+                italic = config.italic,
+                underline = config.underline,
+                maximumFontSize = 52.sp,
+                minimumFontSize = 16.sp,
+                modifier = Modifier.fillMaxSize(),
+            )
+
+            RenderStyle.DOT_MATRIX -> Text(
+                text = "${stringResource(R.string.dot_matrix)} · ${stringResource(R.string.coming_later)}",
+                color = Color(config.textColor),
+                fontWeight = if (config.bold) FontWeight.Bold else FontWeight.Normal,
+                fontStyle = if (config.italic) FontStyle.Italic else FontStyle.Normal,
+                textDecoration = if (config.underline) {
+                    TextDecoration.Underline
+                } else {
+                    TextDecoration.None
+                },
+                style = MaterialTheme.typography.titleMedium,
+            )
+        }
     }
 }
 

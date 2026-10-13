@@ -37,12 +37,10 @@ import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.model.DisplayEffect
 import com.gwolbisa.ledgram.model.RenderStyle
 import com.gwolbisa.ledgram.ui.components.LedPreview
-import com.gwolbisa.ledgram.ui.theme.BrandColorValue
 import com.gwolbisa.ledgram.ui.theme.LedAmber
 import com.gwolbisa.ledgram.ui.theme.LedMuted
 import com.gwolbisa.ledgram.util.MAX_MESSAGE_LENGTH
 import com.gwolbisa.ledgram.util.codePointLength
-import com.gwolbisa.ledgram.util.normalizeMessageInput
 
 private val EditorContentMaxWidth = 720.dp
 
@@ -51,32 +49,21 @@ fun EditorScreen(
     onStartDisplay: (DisplayConfig) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var message by rememberSaveable { mutableStateOf("") }
-    var bold by rememberSaveable { mutableStateOf(false) }
-    var italic by rememberSaveable { mutableStateOf(false) }
-    var underline by rememberSaveable { mutableStateOf(false) }
-    val trimmedMessage = message.trim()
+    var uiState by rememberSaveable(stateSaver = EditorUiState.Saver) {
+        mutableStateOf(EditorUiState())
+    }
+    val displayConfig = uiState.toDisplayConfig()
+    val previewConfig = displayConfig.copy(
+        message = displayConfig.message.ifEmpty { stringResource(R.string.preview_sample) },
+    )
 
     Scaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             EditorBottomActions(
-                enabled = trimmedMessage.isNotEmpty(),
-                onStartDisplay = {
-                    onStartDisplay(
-                        DisplayConfig(
-                            message = message,
-                            textColor = BrandColorValue.TEXT,
-                            backgroundColor = BrandColorValue.BACKGROUND,
-                            bold = bold,
-                            italic = italic,
-                            underline = underline,
-                            renderStyle = RenderStyle.TEXT_GLOW,
-                            effect = DisplayEffect.STATIC,
-                        ),
-                    )
-                },
+                enabled = uiState.canStartDisplay,
+                onStartDisplay = { onStartDisplay(displayConfig) },
             )
         },
     ) { innerPadding ->
@@ -107,29 +94,32 @@ fun EditorScreen(
                 Spacer(Modifier.height(22.dp))
                 SectionLabel(stringResource(R.string.preview_label))
                 Spacer(Modifier.height(8.dp))
-                LedPreview(
-                    message = message.ifEmpty { stringResource(R.string.preview_sample) },
-                    bold = bold,
-                    italic = italic,
-                    underline = underline,
-                )
+                LedPreview(config = previewConfig)
                 Spacer(Modifier.height(26.dp))
                 MessageInput(
-                    message = message,
-                    onMessageChange = { message = normalizeMessageInput(it) },
+                    message = uiState.message,
+                    onMessageChange = { uiState = uiState.withMessage(it) },
                 )
                 Spacer(Modifier.height(28.dp))
-                RenderStyleSelector()
+                RenderStyleSelector(
+                    selected = uiState.renderStyle,
+                    onSelected = { uiState = uiState.copy(renderStyle = it) },
+                )
                 Spacer(Modifier.height(28.dp))
-                EffectSelector()
+                EffectSelector(
+                    selected = uiState.runtimeEffect,
+                    onSelected = { uiState = uiState.copy(effect = it) },
+                )
                 Spacer(Modifier.height(28.dp))
                 StyleSelector(
-                    bold = bold,
-                    italic = italic,
-                    underline = underline,
-                    onBoldChange = { bold = !bold },
-                    onItalicChange = { italic = !italic },
-                    onUnderlineChange = { underline = !underline },
+                    bold = uiState.bold,
+                    italic = uiState.italic,
+                    underline = uiState.underline,
+                    onBoldChange = { uiState = uiState.copy(bold = !uiState.bold) },
+                    onItalicChange = { uiState = uiState.copy(italic = !uiState.italic) },
+                    onUnderlineChange = {
+                        uiState = uiState.copy(underline = !uiState.underline)
+                    },
                 )
                 Spacer(Modifier.height(32.dp))
             }
@@ -165,7 +155,10 @@ private fun MessageInput(message: String, onMessageChange: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RenderStyleSelector() {
+private fun RenderStyleSelector(
+    selected: RenderStyle,
+    onSelected: (RenderStyle) -> Unit,
+) {
     Column {
         SectionLabel(stringResource(R.string.render_style_label))
         Spacer(Modifier.height(8.dp))
@@ -174,53 +167,54 @@ private fun RenderStyleSelector() {
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             FilterChip(
-                selected = true,
-                onClick = {},
+                selected = selected == RenderStyle.TEXT_GLOW,
+                onClick = { onSelected(RenderStyle.TEXT_GLOW) },
                 label = { Text(stringResource(R.string.text_glow)) },
             )
             FilterChip(
-                selected = false,
-                onClick = {},
-                enabled = false,
+                selected = selected == RenderStyle.DOT_MATRIX,
+                onClick = { onSelected(RenderStyle.DOT_MATRIX) },
                 label = { Text(stringResource(R.string.dot_matrix)) },
             )
         }
-        Text(
-            text = stringResource(R.string.coming_later),
-            color = LedMuted,
-            style = MaterialTheme.typography.labelSmall,
-        )
+        if (selected == RenderStyle.DOT_MATRIX) {
+            Text(
+                text = stringResource(R.string.coming_later),
+                color = LedMuted,
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EffectSelector() {
-    val futureEffects = listOf(
-        R.string.effect_right_to_left,
-        R.string.effect_left_to_right,
-        R.string.effect_blink,
-        R.string.effect_pulse,
-        R.string.effect_fade,
+private fun EffectSelector(
+    selected: DisplayEffect,
+    onSelected: (DisplayEffect) -> Unit,
+) {
+    val effects = listOf(
+        DisplayEffect.STATIC to R.string.effect_static,
+        DisplayEffect.RIGHT_TO_LEFT to R.string.effect_right_to_left,
+        DisplayEffect.LEFT_TO_RIGHT to R.string.effect_left_to_right,
+        DisplayEffect.BLINK to R.string.effect_blink,
+        DisplayEffect.PULSE to R.string.effect_pulse,
+        DisplayEffect.FADE to R.string.effect_fade,
     )
 
     Column {
         SectionLabel(stringResource(R.string.effect_label))
         Spacer(Modifier.height(8.dp))
-        FilterChip(
-            selected = true,
-            onClick = {},
-            label = { Text(stringResource(R.string.effect_static)) },
-        )
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            futureEffects.forEach { label ->
+            effects.forEach { (effect, label) ->
+                val implemented = effect == DisplayEffect.STATIC
                 FilterChip(
-                    selected = false,
-                    onClick = {},
-                    enabled = false,
+                    selected = selected == effect,
+                    onClick = { onSelected(effect) },
+                    enabled = implemented,
                     label = { Text(stringResource(label)) },
                 )
             }

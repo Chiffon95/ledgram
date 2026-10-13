@@ -6,7 +6,7 @@ LEDgram은 휴대폰 화면을 콘서트, 응원, 행사 및 간단한 시각 �
 
 - **앱 이름:** LEDgram
 - **패키지:** `com.gwolbisa.ledgram`
-- **스튜디오:** Gwolbisa Studio
+- **스튜디오:** GWOL LABS
 
 ## 프로젝트 상태
 

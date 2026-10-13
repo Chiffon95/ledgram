@@ -86,11 +86,19 @@ fun DisplayRenderer(
     when (config.renderStyle) {
         RenderStyle.TEXT_GLOW -> when (config.effect) {
             DisplayEffect.STATIC -> StaticTextGlowRenderer(config, modifier)
-            else -> Unit
+            else -> UnimplementedEffectFallback(config, modifier)
         }
 
         RenderStyle.DOT_MATRIX -> Unit
     }
+}
+
+@Composable
+private fun UnimplementedEffectFallback(
+    config: DisplayConfig,
+    modifier: Modifier = Modifier,
+) {
+    StaticTextGlowRenderer(config, modifier)
 }
 
 @Composable

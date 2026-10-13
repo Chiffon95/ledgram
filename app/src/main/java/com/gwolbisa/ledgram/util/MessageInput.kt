@@ -11,5 +11,7 @@ fun normalizeMessageInput(input: String, maxCodePoints: Int = MAX_MESSAGE_LENGTH
     return singleLine.substring(0, endIndex)
 }
 
+fun normalizeMessageForDisplay(input: String): String = normalizeMessageInput(input).trim()
+
 fun String.codePointLength(): Int = codePointCount(0, length)
 

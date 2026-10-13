@@ -24,5 +24,15 @@ class MessageInputTest {
     fun `short unicode input is unchanged`() {
         assertEquals("안녕하세요 👋", normalizeMessageInput("안녕하세요 👋"))
     }
+
+    @Test
+    fun `display message is normalized and trimmed`() {
+        assertEquals("Hello world", normalizeMessageForDisplay("  Hello\nworld  "))
+    }
+
+    @Test
+    fun `whitespace-only display message is blank`() {
+        assertEquals("", normalizeMessageForDisplay(" \t\n "))
+    }
 }
 
