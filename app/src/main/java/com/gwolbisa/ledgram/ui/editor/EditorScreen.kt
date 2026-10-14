@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -63,7 +61,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gwolbisa.ledgram.R
-import com.gwolbisa.ledgram.ads.AdaptiveBanner
+import com.gwolbisa.ledgram.ads.EditorBannerAd
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.model.MotionEffect
 import com.gwolbisa.ledgram.model.RenderStyle
@@ -684,41 +682,42 @@ private fun EditorBottomActions(
 ) {
     val density = LocalDensity.current
     val isKeyboardVisible = WindowInsets.ime.getBottom(density) > 0
+    if (isKeyboardVisible) return
+
     Surface(
-        modifier = Modifier
-            .navigationBarsPadding()
-            .imePadding(),
+        modifier = Modifier.navigationBarsPadding(),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 12.dp,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    PaddingValues(start = 20.dp, top = 14.dp, end = 20.dp, bottom = 16.dp),
-                ),
+                .padding(top = 12.dp, bottom = if (showBanner) 8.dp else 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (showBanner && !isKeyboardVisible) {
-                AdaptiveBanner(
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Button(
+                    onClick = onStartDisplay,
+                    enabled = enabled,
                     modifier = Modifier
                         .widthIn(max = EditorContentMaxWidth)
-                        .fillMaxWidth(),
-                )
-                Spacer(Modifier.height(10.dp))
+                        .fillMaxWidth()
+                        .height(56.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.start_display),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
-            Button(
-                onClick = onStartDisplay,
-                enabled = enabled,
-                modifier = Modifier
-                    .widthIn(max = EditorContentMaxWidth)
-                    .fillMaxWidth()
-                    .height(56.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.start_display),
-                    fontWeight = FontWeight.Bold,
-                )
+            if (showBanner) {
+                Spacer(Modifier.height(8.dp))
+                EditorBannerAd()
             }
         }
     }
