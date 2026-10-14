@@ -20,6 +20,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -48,12 +49,14 @@ private val SettingsContentMaxWidth = 720.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(
+internal fun SettingsScreen(
     versionName: String,
+    selectedLanguage: AppLanguage,
     showPrivacyOptions: Boolean,
     onPrivacyOptions: () -> Unit,
     onPrivacyPolicy: () -> Unit,
     onOpenSourceLicenses: () -> Unit,
+    onLanguageSelected: (AppLanguage) -> Unit,
     onResetEditorSettings: suspend () -> Boolean,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
@@ -61,7 +64,19 @@ fun SettingsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     var showResetDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
     val resetSuccessMessage = stringResource(R.string.settings_reset_success)
+
+    if (showLanguageDialog) {
+        LanguageSelectionDialog(
+            selectedLanguage = selectedLanguage,
+            onLanguageSelected = { language ->
+                showLanguageDialog = false
+                if (language != selectedLanguage) onLanguageSelected(language)
+            },
+            onDismiss = { showLanguageDialog = false },
+        )
+    }
 
     if (showResetDialog) {
         AlertDialog(
@@ -134,9 +149,10 @@ fun SettingsScreen(
                     label = stringResource(R.string.settings_developer),
                     value = stringResource(R.string.studio_name),
                 )
-                SettingsRow(
+                SettingsActionRow(
                     label = stringResource(R.string.settings_language),
-                    value = stringResource(R.string.settings_system_default),
+                    value = appLanguageLabel(selectedLanguage),
+                    onClick = { showLanguageDialog = true },
                 )
 
                 SettingsSectionTitle(stringResource(R.string.settings_privacy_legal))
@@ -167,7 +183,11 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SettingsActionRow(label: String, onClick: () -> Unit) {
+private fun SettingsActionRow(
+    label: String,
+    value: String? = null,
+    onClick: () -> Unit,
+) {
     Column {
         Row(
             modifier = Modifier
@@ -181,9 +201,66 @@ private fun SettingsActionRow(label: String, onClick: () -> Unit) {
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyLarge,
             )
+            value?.let {
+                Text(
+                    text = it,
+                    color = LedMuted,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
     }
+}
+
+@Composable
+private fun LanguageSelectionDialog(
+    selectedLanguage: AppLanguage,
+    onLanguageSelected: (AppLanguage) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_language)) },
+        text = {
+            Column {
+                AppLanguage.entries.forEach { language ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(
+                                role = Role.RadioButton,
+                                onClick = { onLanguageSelected(language) },
+                            )
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(
+                            selected = language == selectedLanguage,
+                            onClick = null,
+                        )
+                        Text(
+                            text = appLanguageLabel(language),
+                            modifier = Modifier.padding(start = 12.dp),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
+}
+
+@Composable
+private fun appLanguageLabel(language: AppLanguage): String = when (language) {
+    AppLanguage.SYSTEM_DEFAULT -> stringResource(R.string.settings_system_default)
+    AppLanguage.KOREAN -> stringResource(R.string.settings_language_korean)
+    AppLanguage.ENGLISH -> stringResource(R.string.settings_language_english)
 }
 
 @Composable

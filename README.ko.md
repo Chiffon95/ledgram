@@ -13,6 +13,7 @@
 
 - 개발자: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
+- Version: `0.9.0` (`versionCode 9`)
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
 
@@ -99,7 +100,7 @@ Android system font + fallback 사용.
 
 스타일:
 
-- Bold: active dot 가로 확장
+- Bold: 간격을 유지한 하나의 조금 더 큰 dot
 - Italic: row별 X offset
 - Underline: 하단 dot row
 
@@ -168,6 +169,8 @@ Settings에 포함:
 - Third-party SDKs
 - Privacy Options — UMP가 필요할 때만
 
+Open Source Licenses 화면에는 library와 license 이름만 표시. Google 광고/동의 SDK는 별도의 Third-party SDKs 고지로 구분.
+
 현재 구성:
 
 - 사용자 계정 없음
@@ -182,7 +185,7 @@ Google Mobile Ads / Google UMP는 광고와 동의 처리용.
 ## Settings
 
 - 앱 이름 / versionName / Gowl Labs
-- 시스템 기본 언어 표시
+- Language: 시스템 기본값 / 한국어 / English
 - Privacy Policy
 - Open Source Licenses
 - Privacy Options
@@ -205,6 +208,7 @@ Google Mobile Ads / Google UMP는 광고와 동의 처리용.
 | UI | Jetpack Compose + Material 3 |
 | Storage | Preferences DataStore 1.2.1 |
 | Lifecycle | AndroidX Lifecycle 2.10.0 |
+| Per-app locale | AndroidX AppCompat 1.7.1 |
 | Ads | Google Mobile Ads SDK 25.5.0 |
 | Consent | Google UMP SDK 4.0.0 |
 
@@ -264,8 +268,6 @@ app/build/outputs/apk/debug/
 - release signing / AAB
 - Play Console listing / store assets
 - 최종 regression test
-
-앱 내 언어 전환은 현재 MVP에서 제외.
 
 ## License
 

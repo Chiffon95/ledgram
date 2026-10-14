@@ -3,9 +3,9 @@ package com.gwolbisa.ledgram.ui.settings
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,59 +28,41 @@ import com.gwolbisa.ledgram.util.applyOrientationPolicy
 private data class LicenseEntry(
     val library: String,
     val license: String,
-    val projectUrl: String,
-)
-
-private data class ThirdPartySdkEntry(
-    val name: String,
-    val documentationUrl: String,
 )
 
 private val licenseEntries = listOf(
     LicenseEntry(
         library = "AndroidX",
-        license = "The Apache Software License, Version 2.0",
-        projectUrl = "https://developer.android.com/jetpack/androidx",
+        license = "Apache License 2.0",
     ),
     LicenseEntry(
         library = "Jetpack Compose",
-        license = "The Apache Software License, Version 2.0",
-        projectUrl = "https://developer.android.com/compose",
+        license = "Apache License 2.0",
     ),
     LicenseEntry(
         library = "Material 3",
-        license = "The Apache Software License, Version 2.0",
-        projectUrl = "https://developer.android.com/jetpack/androidx/releases/compose-material3",
+        license = "Apache License 2.0",
     ),
     LicenseEntry(
         library = "Preferences DataStore",
-        license = "The Apache Software License, Version 2.0",
-        projectUrl = "https://developer.android.com/topic/libraries/architecture/datastore",
+        license = "Apache License 2.0",
     ),
     LicenseEntry(
         library = "Kotlin",
-        license = "Apache-2.0",
-        projectUrl = "https://kotlinlang.org/",
+        license = "Apache License 2.0",
     ),
     LicenseEntry(
         library = "Kotlin Coroutines",
-        license = "The Apache Software License, Version 2.0",
-        projectUrl = "https://github.com/Kotlin/kotlinx.coroutines",
+        license = "Apache License 2.0",
     ),
 )
 
-private val thirdPartySdkEntries = listOf(
-    ThirdPartySdkEntry(
-        name = "Google Mobile Ads SDK",
-        documentationUrl = "https://developers.google.com/admob/android/quick-start",
-    ),
-    ThirdPartySdkEntry(
-        name = "Google User Messaging Platform SDK",
-        documentationUrl = "https://developers.google.com/admob/android/privacy",
-    ),
+private val thirdPartySdkNames = listOf(
+    "Google Mobile Ads SDK",
+    "Google User Messaging Platform SDK",
 )
 
-class OpenSourceLicensesActivity : ComponentActivity() {
+class OpenSourceLicensesActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         applyDocumentOrientationPolicy()
@@ -135,8 +117,8 @@ private fun OpenSourceLicensesScreen(onBack: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 8.dp, bottom = 6.dp),
         )
-        thirdPartySdkEntries.forEach { entry ->
-            ThirdPartySdkRow(entry)
+        thirdPartySdkNames.forEach { name ->
+            ThirdPartySdkRow(name)
         }
     }
 }
@@ -159,33 +141,21 @@ private fun LicenseRow(entry: LicenseEntry) {
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 4.dp),
         )
-        Text(
-            text = entry.projectUrl,
-            color = LedMuted,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(top = 4.dp),
-        )
     }
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 }
 
 @Composable
-private fun ThirdPartySdkRow(entry: ThirdPartySdkEntry) {
+private fun ThirdPartySdkRow(name: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 14.dp),
     ) {
         Text(
-            text = entry.name,
+            text = name,
             fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-            text = entry.documentationUrl,
-            color = LedMuted,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(top = 4.dp),
         )
     }
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

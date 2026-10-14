@@ -7,9 +7,11 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gwolbisa.ledgram.LEDgramApplication
@@ -18,7 +20,7 @@ import com.gwolbisa.ledgram.ui.theme.LEDgramTheme
 import com.gwolbisa.ledgram.util.applyOrientationPolicy
 import kotlinx.coroutines.CancellationException
 
-class SettingsActivity : ComponentActivity() {
+class SettingsActivity : AppCompatActivity() {
     private val ledgramApplication: LEDgramApplication
         get() = application as LEDgramApplication
     private val editorPreferencesRepository by lazy { EditorPreferencesRepository(this) }
@@ -35,6 +37,9 @@ class SettingsActivity : ComponentActivity() {
                     .collectAsStateWithLifecycle()
                 SettingsScreen(
                     versionName = loadVersionName(),
+                    selectedLanguage = AppLanguage.fromLanguageTags(
+                        AppCompatDelegate.getApplicationLocales().toLanguageTags(),
+                    ),
                     showPrivacyOptions = privacyOptionsRequired,
                     onPrivacyOptions = {
                         ledgramApplication.consentManager.showPrivacyOptionsForm(this)
@@ -45,6 +50,7 @@ class SettingsActivity : ComponentActivity() {
                     onOpenSourceLicenses = {
                         startActivity(Intent(this, OpenSourceLicensesActivity::class.java))
                     },
+                    onLanguageSelected = ::applyLanguage,
                     onResetEditorSettings = ::resetEditorSettings,
                     onBack = onBackPressedDispatcher::onBackPressed,
                 )
@@ -77,6 +83,12 @@ class SettingsActivity : ComponentActivity() {
             packageManager.getPackageInfo(packageName, 0)
         }
         return packageInfo.versionName.orEmpty()
+    }
+
+    private fun applyLanguage(language: AppLanguage) {
+        AppCompatDelegate.setApplicationLocales(
+            LocaleListCompat.forLanguageTags(language.languageTag),
+        )
     }
 
     private suspend fun resetEditorSettings(): Boolean = try {

@@ -5,10 +5,10 @@ import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -17,7 +17,7 @@ import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.ui.theme.LEDgramTheme
 import com.gwolbisa.ledgram.util.applyOrientationPolicy
 
-class DisplayActivity : ComponentActivity() {
+class DisplayActivity : AppCompatActivity() {
     private var previousBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
     private val completionTracker = DisplaySessionCompletionTracker()
 

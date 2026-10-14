@@ -34,24 +34,32 @@ class DotMatrixLayoutTest {
     }
 
     @Test
-    fun `bold and italic add explicit horizontal geometry`() {
+    fun `bold single-dot radius adds symmetric geometry and preserves spacing`() {
         val normal = createDotMatrixBlockLayout("LEDGRAM")
         val bold = createDotMatrixBlockLayout("LEDGRAM", bold = true)
         val italic = createDotMatrixBlockLayout("LEDGRAM", italic = true)
         val combined = createDotMatrixBlockLayout("LEDGRAM", bold = true, italic = true)
 
         assertEquals(
-            normal.widthUnits + DOT_MATRIX_BOLD_OFFSET_RATIO,
+            normal.widthUnits + DOT_MATRIX_BOLD_OVERSCAN_RATIO * 2f,
             bold.widthUnits,
             0.0001f,
         )
+        assertEquals(
+            normal.heightUnits + DOT_MATRIX_BOLD_OVERSCAN_RATIO * 2f,
+            bold.heightUnits,
+            0.0001f,
+        )
+        assertEquals(DOT_MATRIX_BOLD_RADIUS_RATIO, dotMatrixDotRadiusUnits(true), 0f)
+        assertEquals(DOT_MATRIX_NORMAL_RADIUS_RATIO, dotMatrixDotRadiusUnits(false), 0f)
+        assertTrue(DOT_MATRIX_BOLD_RADIUS_RATIO * 2f < 1f + DOT_MATRIX_DOT_GAP_RATIO)
         assertEquals(
             normal.widthUnits + DOT_MATRIX_ITALIC_OVERSCAN_RATIO,
             italic.widthUnits,
             0.0001f,
         )
         assertEquals(
-            normal.widthUnits + DOT_MATRIX_BOLD_OFFSET_RATIO +
+            normal.widthUnits + DOT_MATRIX_BOLD_OVERSCAN_RATIO * 2f +
                 DOT_MATRIX_ITALIC_OVERSCAN_RATIO,
             combined.widthUnits,
             0.0001f,
@@ -76,7 +84,12 @@ class DotMatrixLayoutTest {
             0.0001f,
         )
         assertTrue(allStyles.widthUnits > normal.widthUnits)
-        assertEquals(underline.heightUnits, allStyles.heightUnits, 0.0001f)
+        assertEquals(
+            normal.heightUnits + DOT_MATRIX_BOLD_OVERSCAN_RATIO * 2f +
+                DOT_MATRIX_UNDERLINE_SPACING_RATIO + DOT_MATRIX_BOLD_RADIUS_RATIO * 2f,
+            allStyles.heightUnits,
+            0.0001f,
+        )
     }
 
     @Test
@@ -92,7 +105,15 @@ class DotMatrixLayoutTest {
         assertTrue(!layout.lines[1].underlined)
         assertTrue(layout.lines[2].underlined)
         assertEquals(layout.lines[2].widthUnits, layout.widthUnits, 0.0001f)
-        assertEquals(32.6f, layout.heightUnits, 0.0001f)
+        val styledLineHeight = DOT_MATRIX_GLYPH_HEIGHT_UNITS +
+            DOT_MATRIX_BOLD_OVERSCAN_RATIO * 2f +
+            DOT_MATRIX_UNDERLINE_SPACING_RATIO + DOT_MATRIX_BOLD_RADIUS_RATIO * 2f
+        assertEquals(
+            styledLineHeight * 2f + DOT_MATRIX_GLYPH_HEIGHT_UNITS +
+                DOT_MATRIX_LINE_GAP_RATIO * 2f,
+            layout.heightUnits,
+            0.0001f,
+        )
     }
 
     @Test
@@ -118,6 +139,48 @@ class DotMatrixLayoutTest {
         val styledDotSize = calculateFittingDotSize(styled, 200f, 100f, fitWidth = true)
 
         assertTrue(styledDotSize < normalDotSize)
+    }
+
+    @Test
+    fun `every style combination has valid multiline static and marquee geometry`() {
+        val combinations = listOf(
+            Triple(false, false, false),
+            Triple(true, false, false),
+            Triple(false, true, false),
+            Triple(false, false, true),
+            Triple(true, true, false),
+            Triple(true, false, true),
+            Triple(false, true, true),
+            Triple(true, true, true),
+        )
+
+        combinations.forEach { (bold, italic, underline) ->
+            val layout = createDotMatrixBlockLayout(
+                message = "LED\nGRAM",
+                bold = bold,
+                italic = italic,
+                underline = underline,
+            )
+            val staticDotSize = calculateFittingDotSize(
+                layout = layout,
+                availableWidth = 320f,
+                availableHeight = 180f,
+                fitWidth = true,
+            )
+            val marqueeDotSize = calculateFittingDotSize(
+                layout = layout,
+                availableWidth = 0f,
+                availableHeight = 180f,
+                fitWidth = false,
+            )
+
+            assertTrue(staticDotSize > 0f)
+            assertTrue(marqueeDotSize > 0f)
+            assertTrue(layout.widthUnits * staticDotSize <= 320.0001f)
+            assertTrue(layout.heightUnits * staticDotSize <= 180.0001f)
+            assertTrue(layout.heightUnits * marqueeDotSize <= 180.0001f)
+            assertTrue(layout.widthUnits * marqueeDotSize > 0f)
+        }
     }
 
     @Test

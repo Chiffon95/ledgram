@@ -13,6 +13,7 @@ Android LED signboard app for concerts, cheering, events, and quick fullscreen m
 
 - Developer: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
+- Version: `0.9.0` (`versionCode 9`)
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
 
@@ -99,7 +100,7 @@ Unsupported characters use `?`.
 
 Styles:
 
-- Bold: extra horizontal active-dot offset
+- Bold: one slightly larger dot with conservative spacing
 - Italic: row-based X offset
 - Underline: bottom dot row
 
@@ -168,6 +169,8 @@ Settings includes:
 - Third-party SDKs
 - Privacy Options — only when UMP requires it
 
+The Open Source Licenses screen shows library and license names only. Google advertising and consent SDKs remain in a separate Third-party SDKs notice.
+
 Current setup:
 
 - no user accounts
@@ -182,7 +185,7 @@ Google Mobile Ads / Google UMP are used for ads and consent handling.
 ## Settings
 
 - app name / versionName / Gowl Labs
-- system-default language info
+- Language: System default / 한국어 / English
 - Privacy Policy
 - Open Source Licenses
 - Privacy Options
@@ -205,6 +208,7 @@ Korean UI keeps product/technical labels in English where that reads better:
 | UI | Jetpack Compose + Material 3 |
 | Storage | Preferences DataStore 1.2.1 |
 | Lifecycle | AndroidX Lifecycle 2.10.0 |
+| Per-app locale | AndroidX AppCompat 1.7.1 |
 | Ads | Google Mobile Ads SDK 25.5.0 |
 | Consent | Google UMP SDK 4.0.0 |
 
@@ -264,8 +268,6 @@ app/build/outputs/apk/debug/
 - release signing / AAB
 - Play Console listing / store assets
 - final regression test
-
-In-app language switching is out of the current MVP.
 
 ## License
 

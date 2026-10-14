@@ -5,7 +5,10 @@ import kotlin.math.min
 internal const val DOT_MATRIX_DOT_GAP_RATIO = 0.3f
 internal const val DOT_MATRIX_CHARACTER_GAP_RATIO = 1.3f
 internal const val DOT_MATRIX_LINE_GAP_RATIO = 1.3f
-internal const val DOT_MATRIX_BOLD_OFFSET_RATIO = 0.22f
+internal const val DOT_MATRIX_NORMAL_RADIUS_RATIO = 0.5f
+internal const val DOT_MATRIX_BOLD_RADIUS_RATIO = 0.57f
+internal const val DOT_MATRIX_BOLD_OVERSCAN_RATIO =
+    DOT_MATRIX_BOLD_RADIUS_RATIO - DOT_MATRIX_NORMAL_RADIUS_RATIO
 internal const val DOT_MATRIX_ITALIC_OVERSCAN_RATIO = 1.2f
 internal const val DOT_MATRIX_UNDERLINE_SPACING_RATIO = 0.8f
 internal const val DOT_MATRIX_UNDERLINE_HEIGHT_RATIO = 1f
@@ -22,6 +25,7 @@ internal data class DotMatrixBlockSize(
 
 internal data class DotMatrixStyleGeometry(
     val boldExtraWidthUnits: Float,
+    val boldExtraHeightUnits: Float,
     val italicExtraWidthUnits: Float,
     val underlineExtraHeightUnits: Float,
 ) {
@@ -51,14 +55,19 @@ internal fun calculateDotMatrixStyleGeometry(
     italic: Boolean,
     underline: Boolean,
 ): DotMatrixStyleGeometry = DotMatrixStyleGeometry(
-    boldExtraWidthUnits = if (bold) DOT_MATRIX_BOLD_OFFSET_RATIO else 0f,
+    boldExtraWidthUnits = if (bold) DOT_MATRIX_BOLD_OVERSCAN_RATIO * 2f else 0f,
+    boldExtraHeightUnits = if (bold) DOT_MATRIX_BOLD_OVERSCAN_RATIO * 2f else 0f,
     italicExtraWidthUnits = if (italic) DOT_MATRIX_ITALIC_OVERSCAN_RATIO else 0f,
     underlineExtraHeightUnits = if (underline) {
-        DOT_MATRIX_UNDERLINE_SPACING_RATIO + DOT_MATRIX_UNDERLINE_HEIGHT_RATIO
+        DOT_MATRIX_UNDERLINE_SPACING_RATIO +
+            if (bold) DOT_MATRIX_BOLD_RADIUS_RATIO * 2f else DOT_MATRIX_UNDERLINE_HEIGHT_RATIO
     } else {
         0f
     },
 )
+
+internal fun dotMatrixDotRadiusUnits(bold: Boolean): Float =
+    if (bold) DOT_MATRIX_BOLD_RADIUS_RATIO else DOT_MATRIX_NORMAL_RADIUS_RATIO
 
 internal fun calculateDotMatrixLineWidthUnits(
     glyphCount: Int,
@@ -84,7 +93,8 @@ internal fun createDotMatrixBlockLayout(
             glyphs = glyphs,
             widthUnits = calculateDotMatrixLineWidthUnits(glyphs.size, styleGeometry),
             heightUnits = DOT_MATRIX_GLYPH_HEIGHT_UNITS +
-                if (underlined) styleGeometry.underlineExtraHeightUnits else 0f,
+                (if (glyphs.isNotEmpty()) styleGeometry.boldExtraHeightUnits else 0f) +
+                (if (underlined) styleGeometry.underlineExtraHeightUnits else 0f),
             underlined = underlined,
         )
     }

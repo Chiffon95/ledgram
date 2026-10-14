@@ -62,11 +62,13 @@
     <string name="navigate_back">Navigate back</string>
     <string name="settings_language">Language</string>
     <string name="settings_system_default">System default</string>
+    <string name="settings_language_korean">한국어</string>
+    <string name="settings_language_english">English</string>
     <string name="settings_section_app">App</string>
     <string name="settings_app_name">App name</string>
     <string name="settings_version">Version</string>
     <string name="settings_developer">Developer</string>
-    <string name="studio_name">GWOL LABS</string>
+    <string name="studio_name">Gowl Labs</string>
     <string name="settings_privacy_legal">Privacy &amp; Legal</string>
     <string name="settings_privacy_options">Privacy Options</string>
     <string name="settings_privacy_policy">Privacy Policy</string>
@@ -82,7 +84,7 @@
     <string name="privacy_policy_local_title">Information stored on your device</string>
     <string name="privacy_policy_local_body">LEDgram stores Editor preferences locally on this device. These preferences include message text; text and background colors; Bold, Italic, and Underline styles; Render Style; Motion and Effect selections; and Motion Speed and Effect Speed. LEDgram also stores local Display-exit counters and interstitial timestamps used for advertising frequency control.</string>
     <string name="privacy_policy_content_title">Your content and app services</string>
-    <string name="privacy_policy_content_body">LEDgram does not manually upload your LED message text to GWOL LABS. LEDgram currently has no user accounts and no backend or server for user content. LEDgram does not currently use Firebase Analytics or Crashlytics.</string>
+    <string name="privacy_policy_content_body">LEDgram does not manually upload your LED message text to Gowl Labs. LEDgram currently has no user accounts and no backend or server for user content. LEDgram does not currently use Firebase Analytics or Crashlytics.</string>
     <string name="privacy_policy_ads_title">Advertising and consent</string>
     <string name="privacy_policy_ads_body">LEDgram includes Google Mobile Ads for advertising and Google UMP for consent and privacy choices where applicable. Google advertising components may process information according to Google’s own policies. Display mode itself contains no ads.</string>
     <string name="privacy_policy_controls_title">Your controls</string>
