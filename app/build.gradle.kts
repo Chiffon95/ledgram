@@ -3,6 +3,12 @@ import java.io.File
 import java.security.MessageDigest
 import java.util.Properties
 
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.parcelize)
+}
+
 val releaseSigningPropertiesFile = rootProject.file("keystore.properties")
 val releaseSigningProperties = Properties().apply {
     if (releaseSigningPropertiesFile.isFile) {
@@ -27,12 +33,6 @@ val releaseStoreFile = releaseSigningProperties.getProperty("storeFile")
     ?.let { configuredFile ->
         if (configuredFile.isAbsolute) configuredFile else rootProject.file(configuredFile.path)
     }
-
-plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.parcelize)
-}
 
 android {
     namespace = "com.gwolbisa.ledgram"
