@@ -1,5 +1,32 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.io.File
 import java.security.MessageDigest
+import java.util.Properties
+
+val releaseSigningPropertiesFile = rootProject.file("keystore.properties")
+val releaseSigningProperties = Properties().apply {
+    if (releaseSigningPropertiesFile.isFile) {
+        releaseSigningPropertiesFile.inputStream().use(::load)
+    }
+}
+val requiredReleaseSigningKeys = listOf(
+    "storeFile",
+    "storePassword",
+    "keyAlias",
+    "keyPassword",
+)
+val missingReleaseSigningKeys = requiredReleaseSigningKeys.filter { key ->
+    releaseSigningProperties.getProperty(key).isNullOrBlank()
+}
+val releaseSigningConfigured =
+    releaseSigningPropertiesFile.isFile && missingReleaseSigningKeys.isEmpty()
+val releaseStoreFile = releaseSigningProperties.getProperty("storeFile")
+    ?.trim()
+    ?.takeIf(String::isNotEmpty)
+    ?.let(::File)
+    ?.let { configuredFile ->
+        if (configuredFile.isAbsolute) configuredFile else rootProject.file(configuredFile.path)
+    }
 
 plugins {
     alias(libs.plugins.android.application)
@@ -21,9 +48,21 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    val releaseSigningConfig = if (releaseSigningConfigured) {
+        signingConfigs.create("release") {
+            storeFile = releaseStoreFile
+            storePassword = releaseSigningProperties.getProperty("storePassword")
+            keyAlias = releaseSigningProperties.getProperty("keyAlias")
+            keyPassword = releaseSigningProperties.getProperty("keyPassword")
+        }
+    } else {
+        null
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = releaseSigningConfig
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -43,6 +82,40 @@ android {
 
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+    }
+}
+
+val releaseArtifactTaskNames = setOf(
+    "assembleRelease",
+    "bundleRelease",
+    "packageRelease",
+    "packageReleaseBundle",
+    "signReleaseBundle",
+)
+val appProjectPath = project.path
+gradle.taskGraph.whenReady {
+    val releaseArtifactRequested = allTasks.any { task ->
+        task.project.path == appProjectPath && task.name in releaseArtifactTaskNames
+    }
+    if (!releaseArtifactRequested) return@whenReady
+
+    if (!releaseSigningPropertiesFile.isFile) {
+        throw GradleException(
+            "Release signing is not configured. Copy keystore.properties.example to " +
+                "keystore.properties and fill all four upload-key properties.",
+        )
+    }
+    if (missingReleaseSigningKeys.isNotEmpty()) {
+        throw GradleException(
+            "Release signing configuration is incomplete. Set non-empty values for: " +
+                missingReleaseSigningKeys.joinToString() + ".",
+        )
+    }
+    if (releaseStoreFile?.isFile != true) {
+        throw GradleException(
+            "Release signing keystore was not found. Check storeFile in keystore.properties; " +
+                "relative paths are resolved from the repository root.",
+        )
     }
 }
 

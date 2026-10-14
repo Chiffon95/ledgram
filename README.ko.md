@@ -254,6 +254,28 @@ Debug APK:
 app/build/outputs/apk/debug/
 ```
 
+## 릴리스 빌드
+
+로컬 업로드 키 저장소를 만들고 안전하게 보관. 예:
+
+```bash
+keytool -genkeypair \
+  -v \
+  -keystore ledgram-upload.jks \
+  -alias ledgram \
+  -keyalg RSA \
+  -keysize 2048 \
+  -validity 10000
+```
+
+`keystore.properties.example`을 git에서 제외되는 `keystore.properties`로 복사하고 로컬 업로드 키 정보를 입력한 뒤 실행:
+
+```bash
+./gradlew bundleRelease
+```
+
+출력: `app/build/outputs/bundle/release/app-release.aab`
+
 ## 개발 흐름
 
 1. 요구사항 정리
@@ -270,7 +292,7 @@ app/build/outputs/apk/debug/
 - production AdMob App ID / ad unit ID
 - UMP production consent message
 - Google Play용 Privacy Policy URL
-- release signing / AAB
+- production 업로드 키 / Play App Signing 등록
 - Play Console listing / store assets
 - 최종 regression test
 

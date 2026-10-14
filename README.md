@@ -254,6 +254,28 @@ Debug APK:
 app/build/outputs/apk/debug/
 ```
 
+## Release build
+
+Create and securely retain a local upload keystore, for example:
+
+```bash
+keytool -genkeypair \
+  -v \
+  -keystore ledgram-upload.jks \
+  -alias ledgram \
+  -keyalg RSA \
+  -keysize 2048 \
+  -validity 10000
+```
+
+Copy `keystore.properties.example` to the gitignored `keystore.properties`, fill its local upload-key credentials, then run:
+
+```bash
+./gradlew bundleRelease
+```
+
+Output: `app/build/outputs/bundle/release/app-release.aab`
+
 ## Workflow
 
 1. define requirements
@@ -270,7 +292,7 @@ app/build/outputs/apk/debug/
 - production AdMob App ID / ad unit IDs
 - production UMP consent message
 - public Privacy Policy URL for Google Play
-- release signing / AAB
+- production upload key / Play App Signing enrollment
 - Play Console listing / store assets
 - final regression test
 
