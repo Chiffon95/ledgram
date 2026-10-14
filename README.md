@@ -2,9 +2,16 @@
 
 # LEDgram
 
+![Android](https://img.shields.io/badge/Android-API%2024+-3DDC84?logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.4.21-7F52FF?logo=kotlin&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
+![Gradle](https://img.shields.io/badge/Gradle-9.8.0-02303A?logo=gradle&logoColor=white)
+![JDK](https://img.shields.io/badge/JDK-17-ED8B00?logo=openjdk&logoColor=white)
+![AdMob](https://img.shields.io/badge/Google%20Mobile%20Ads-25.5.0-4285F4?logo=googleadmob&logoColor=white)
+
 Android LED signboard app for concerts, cheering, events, and quick fullscreen messages.
 
-- Developer: `GWOL LABS`
+- Developer: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
@@ -168,13 +175,13 @@ Current setup:
 - no Firebase Analytics
 - no Crashlytics
 - no custom telemetry
-- LED message text is not uploaded to a GWOL LABS server
+- LED message text is not uploaded to a Gowl Labs server
 
 Google Mobile Ads / Google UMP are used for ads and consent handling.
 
 ## Settings
 
-- app name / versionName / GWOL LABS
+- app name / versionName / Gowl Labs
 - system-default language info
 - Privacy Policy
 - Open Source Licenses
