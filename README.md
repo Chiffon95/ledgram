@@ -2,49 +2,41 @@
 
 # LEDgram
 
-LEDgram is an Android app that turns a phone screen into a **fullscreen LED signboard** for concerts, cheering, events, and quick visual messages.
+Android LED signboard app for concerts, cheering, events, and quick fullscreen messages.
 
-Type a message, choose colors, rendering, motion, and effects, then tap `Start Display` to use the phone like a signboard.
+- Developer: `GWOL LABS`
+- Package: `com.gwolbisa.ledgram`
+- minSdk: 24
+- compileSdk / targetSdk: 36 / 36
 
-- **App name:** LEDgram
-- **Developer:** GWOL LABS
-- **Package:** `com.gwolbisa.ledgram`
-- **Minimum Android:** Android 7.0 / API 24
+## Status
 
-## Where the project is now
+Core features are mostly done. The project is in release-prep.
 
-The core MVP is almost complete.
-
-- Editor → fullscreen Display flow
+- Editor → fullscreen Display
 - Text + Glow / Dot Matrix
 - Static / bidirectional Marquee
 - Blink / Pulse / Fade
 - live Motion Speed / Effect Speed changes
-- Dot Matrix Bold / Italic / Underline
-- color picker, HEX input, contrast warning
-- Preferences DataStore persistence
-- maximum Display brightness + keep-screen-on + immersive fullscreen
+- Bold / Italic / Underline
+- color presets / HSV / HEX / contrast warning
+- Preferences DataStore
 - Settings / Privacy Policy / Open Source Licenses / Reset
-- Google Mobile Ads + UMP foundation
-- Editor banner and post-Display interstitial policy
+- Google Mobile Ads + UMP
 
-The current build uses **official Google test ad IDs only**. Production AdMob IDs are not configured yet.
+## Editor
 
-## Main features
-
-### Editor
-
-- Up to **100 Unicode code points**
-- Explicit line breaks are preserved
+- up to 100 Unicode code points
+- explicit line breaks preserved
 - Text Color / Background Color
-- Preset colors + HSV + direct HEX input
-- Swap colors
-- Low-contrast warning
-- Recent colors are session-only
+- preset colors + HSV + HEX
+- color swap
+- low-contrast warning
+- recent colors are session-only
 - Bold / Italic / Underline
 - Render Style
-  - `Text + Glow`
-  - `Dot Matrix`
+  - Text + Glow
+  - Dot Matrix
 - Motion
   - Static
   - Right → Left
@@ -54,59 +46,59 @@ The current build uses **official Google test ad IDs only**. Production AdMob ID
   - Blink
   - Pulse
   - Fade
-- Separate Motion Speed / Effect Speed from `0.25x` to `5.0x`
-- Live Preview at the top of the Editor
+- Motion Speed / Effect Speed: `0.25x ~ 5.0x`
+- Live Preview
 
-When the stored message is empty, Preview shows `Hello!` as a sample only. It is not persisted and fullscreen Display remains disabled.
+When the message is empty, `Hello!` is shown in Preview only. It is not persisted or sent to Display.
 
-### Display
+## Display
 
-- Uses the phone screen as the signboard
-- Landscape on compact phones
-- Adaptive behavior on `sw600dp+` large screens where Android may ignore fixed orientation
-- Hides status/navigation bars
-- Sets window brightness to maximum
-- Keeps the screen on
-- Tap to reveal the Exit UI
-- **No ads inside Display**
+- compact phone: landscape
+- `sw600dp+`: adaptive to the current window
+- status/navigation bars hidden
+- maximum window brightness
+- keep screen on
+- tap to show Exit UI
+- no ads in Display
 
-### Multiline messages
+## Multiline
 
-Static and Marquee both keep the user's explicit line structure.
+- explicit line breaks preserved
+- Static: auto-fit the whole multiline block
+- Marquee: move the whole multiline block as one unit
+- no automatic wrapping inside each marquee line
 
-- **Static:** shrinks the whole multiline block until it fits the viewport
-- **Marquee:** moves the entire multiline block as one unit
-- No automatic wrapping inside each logical marquee line
+## Render Style
 
 ### Text + Glow
 
 Uses Android system fonts and fallback fonts.
 
-Korean, English, and other Unicode text render when supported by the system font stack.
+Korean, English, and other Unicode text render within system font support.
 
 ### Dot Matrix
 
-Uses a programmatic 5×7 glyph set.
+Programmatic 5×7 glyphs.
 
 Supported:
 
 - A–Z
-- a–z mapped to uppercase
+- a–z → uppercase
 - 0–9
 - spaces
-- common punctuation: `. , ! ? : ; - _ + / \\ ( ) [ ] # @`
+- `. , ! ? : ; - _ + / \\ ( ) [ ] # @`
 
-Unsupported code points use a `?` fallback glyph.
+Unsupported characters use `?`.
 
-Dot Matrix also supports:
+Styles:
 
-- **Bold:** extra horizontal active-dot offset
-- **Italic:** row-based X offset
-- **Underline:** an extra dot row below the line
+- Bold: extra horizontal active-dot offset
+- Italic: row-based X offset
+- Underline: bottom dot row
 
-Styled width/height is included in Static fitting and Marquee travel bounds.
+Styled width/height is included in Static fitting and Marquee travel.
 
-## Animation behavior
+## Motion / Effect
 
 Motion and Effect are independent.
 
@@ -116,20 +108,13 @@ Examples:
 - Left → Right + Blink
 - Static + Fade
 
-All combinations are supported.
+Speed changes are independent too.
 
-### Live speed changes
+- Motion Speed: keep the current marquee position
+- Effect Speed: keep the current effect phase
+- both apply the new speed from the next frame
 
-Speed controls apply to the running animation without restarting it.
-
-- Motion Speed change → preserves current marquee position and changes movement from the next frame
-- Effect Speed change → preserves the current Blink/Pulse/Fade phase and changes timing from the next frame
-
-Changing speed does not jump the animation back to its initial state.
-
-## Local persistence
-
-Preferences DataStore stores:
+## DataStore
 
 Editor state:
 
@@ -140,47 +125,43 @@ Editor state:
 - Motion / Effect
 - Motion Speed / Effect Speed
 
-Local monetization state:
+Ad state:
 
 - completed Display-exit count
-- two most recent successful interstitial timestamps
+- two recent interstitial timestamps
 
-`Reset Editor Settings` resets **Editor preferences only**.
+`Reset Editor Settings` resets Editor state only.
+UMP consent, Display-exit count, and interstitial frequency state are preserved.
 
-It does not reset:
-
-- Google UMP consent state
-- Display-exit count
-- interstitial frequency state
-
-## Ad policy
-
-The monetization rules are intentionally simple.
+## Ads
 
 ### Banner
 
-- 320×50 banner below `Start Display` in Editor
-- the whole button + banner footer is hidden while the keyboard is open
-- no banner in Display
+- Editor only
+- 320×50 below `Start Display`
+- button + banner footer hidden while keyboard is open
+- none in Display
 
 ### Interstitial
 
-- counts real completed Display sessions
-- **candidate every 5 Display exits**
-- at most **2 successfully shown interstitials in a rolling 30-minute window**
-- unavailable/load/show failures never block normal app use
-- the exit counter resets only after the interstitial actually starts showing
+- candidate every 5 real Display exits
+- max 2 in a rolling 30-minute window
+- unavailable / load failure / show failure does not block UX
+- exit counter resets only after the ad actually starts showing
 
-## Privacy and legal
+The current build uses official Google test App ID / banner ID / interstitial ID.
+Production AdMob values will be added at release time.
 
-Available directly inside Settings:
+## Privacy / Legal
+
+Settings includes:
 
 - Privacy Policy
 - Open Source Licenses
 - Third-party SDKs
-- Privacy Options — shown only when UMP requires it
+- Privacy Options — only when UMP requires it
 
-Current app behavior:
+Current setup:
 
 - no user accounts
 - no backend/server for user content
@@ -189,78 +170,63 @@ Current app behavior:
 - no custom telemetry
 - LED message text is not uploaded to a GWOL LABS server
 
-Google Mobile Ads and Google UMP are included for advertising and consent handling and are governed by Google's applicable terms and policies.
+Google Mobile Ads / Google UMP are used for ads and consent handling.
 
 ## Settings
 
-Currently includes:
-
-- LEDgram app information
-- actual `versionName`
-- Developer: `GWOL LABS`
-- system-default language information
+- app name / versionName / GWOL LABS
+- system-default language info
 - Privacy Policy
 - Open Source Licenses
-- conditional Privacy Options
+- Privacy Options
 - Reset Editor Settings
 
-The Korean UI intentionally keeps product/technical labels in English when that reads better.
-
-Examples:
+Korean UI keeps product/technical labels in English where that reads better:
 
 `Render Style`, `Text + Glow`, `Dot Matrix`, `Motion`, `Effect`, `Motion Speed`, `Effect Speed`
 
-Descriptions and user actions remain natural Korean.
-
-## Technology stack
+## Tech stack
 
 | Item | Version / configuration |
 | --- | --- |
-| Android Gradle Plugin | 9.4.1 |
+| AGP | 9.4.1 |
 | Gradle | 9.8.0 |
 | Kotlin | 2.4.21 |
 | JDK / JVM | 17 |
 | minSdk | 24 |
 | compileSdk / targetSdk | 36 / 36 |
 | UI | Jetpack Compose + Material 3 |
-| Local storage | Preferences DataStore 1.2.1 |
+| Storage | Preferences DataStore 1.2.1 |
 | Lifecycle | AndroidX Lifecycle 2.10.0 |
 | Ads | Google Mobile Ads SDK 25.5.0 |
 | Consent | Google UMP SDK 4.0.0 |
 
-The project uses AGP 9 built-in Kotlin. Do not add `org.jetbrains.kotlin.android`.
+Uses AGP 9 built-in Kotlin. Do not add `org.jetbrains.kotlin.android`.
 
-## Project structure
+## Structure
 
 ```text
 app/src/main/java/com/gwolbisa/ledgram/
-├── ads/            # UMP, banner, interstitial, ad policy
-├── data/           # Preferences DataStore / repository
-├── model/          # DisplayConfig / enums
+├── ads/
+├── data/
+├── model/
 ├── ui/
-│   ├── components/ # shared LED renderer / preview
-│   ├── display/    # fullscreen Display
-│   ├── editor/     # Editor
-│   ├── settings/   # Settings / Privacy / OSS notices
-│   └── theme/      # Material theme / brand colors
-└── util/           # message / color / speed helpers
+│   ├── components/
+│   ├── display/
+│   ├── editor/
+│   ├── settings/
+│   └── theme/
+└── util/
 ```
 
-## Local build
-
-Requirements:
-
-- Android Studio
-- Android SDK Platform 36
-- JDK 17
-- Android 7.0 (API 24) or newer device/emulator
+## Build
 
 ```bash
 ./gradlew clean assembleDebug
 ./gradlew test
 ```
 
-Optional lint check:
+Optional:
 
 ```bash
 ./gradlew lintDebug
@@ -272,42 +238,28 @@ Debug APK:
 app/build/outputs/apk/debug/
 ```
 
-## Development workflow
+## Workflow
 
-The project is built in small milestones and validated immediately instead of stacking large speculative changes.
+1. define requirements
+2. implement with Codex
+3. inspect `git status` / `git diff`
+4. build / test
+5. verify on device
+6. commit / push
+7. next task
 
-1. Confirm requirements
-2. Implement with Codex
-3. Inspect `git status` / `git diff`
-4. Build / test
-5. Verify on a real device
-6. Commit / push
-7. Move to the next milestone
+## Remaining
 
-## What is left before release
-
-Most remaining work is **release preparation**, not core app functionality.
-
-- app icon / Splash / final branding
+- app icon / Splash / branding cleanup
 - production AdMob App ID / ad unit IDs
-- production UMP consent message configuration
+- production UMP consent message
 - public Privacy Policy URL for Google Play
 - release signing / AAB
-- Play Console listing and store assets
-- final real-device regression test
+- Play Console listing / store assets
+- final regression test
 
-In-app language switching is not required for the current MVP and may be added later if needed.
-
-## Test ad warning
-
-**All ad IDs currently committed in the repository are official Google TEST IDs.**
-
-Before production release, replace the App ID and banner/interstitial ad unit IDs together with the actual AdMob values.
-
-Do not mix test IDs and production IDs accidentally.
+In-app language switching is out of the current MVP.
 
 ## License
 
-No open-source license has been selected for LEDgram itself yet.
-
-All rights reserved until a project license is added.
+No project license selected yet.
