@@ -68,6 +68,7 @@
     <string name="settings_studio">Studio</string>
     <string name="studio_name">GWOL LABS</string>
     <string name="settings_privacy_legal">Privacy and legal</string>
+    <string name="settings_privacy_options">Privacy Options</string>
     <string name="settings_privacy_policy">Privacy Policy</string>
     <string name="settings_open_source_licenses">Open Source Licenses</string>
     <string name="settings_not_available_yet">Not available yet</string>

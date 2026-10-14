@@ -7,37 +7,53 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import com.gwolbisa.ledgram.LEDgramApplication
+import com.gwolbisa.ledgram.ads.isInterstitialEligible
 import com.gwolbisa.ledgram.data.EditorPreferencesRepository
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.ui.display.DisplayActivity
 import com.gwolbisa.ledgram.ui.settings.SettingsActivity
 import com.gwolbisa.ledgram.ui.theme.LEDgramTheme
 import com.gwolbisa.ledgram.util.applyOrientationPolicy
+import kotlinx.coroutines.launch
 
 class EditorActivity : ComponentActivity() {
     private val editorViewModel: EditorViewModel by viewModels {
         EditorViewModel.Factory(EditorPreferencesRepository(this))
     }
+    private val displayLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == RESULT_OK) recordCompletedDisplaySession()
+    }
+
+    private val ledgramApplication: LEDgramApplication
+        get() = application as LEDgramApplication
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         applyEditorOrientationPolicy()
         enableEdgeToEdge()
+        ledgramApplication.consentManager.requestConsentInfoUpdate(this)
 
         setContent {
             LEDgramTheme {
                 val uiState by editorViewModel.uiState.collectAsStateWithLifecycle()
+                val adsReady by ledgramApplication.adsManager.adsReady.collectAsStateWithLifecycle()
                 uiState?.let { state ->
                     EditorScreen(
                         uiState = state,
                         onUiStateChange = editorViewModel::setUiState,
                         onStartDisplay = ::openDisplay,
                         onOpenSettings = ::openSettings,
+                        showBanner = adsReady,
                     )
                 }
             }
@@ -59,7 +75,7 @@ class EditorActivity : ComponentActivity() {
     }
 
     private fun openDisplay(config: DisplayConfig) {
-        startActivity(
+        displayLauncher.launch(
             Intent(this, DisplayActivity::class.java)
                 .putExtra(DisplayActivity.EXTRA_DISPLAY_CONFIG, config),
         )
@@ -67,6 +83,25 @@ class EditorActivity : ComponentActivity() {
 
     private fun openSettings() {
         startActivity(Intent(this, SettingsActivity::class.java))
+    }
+
+    private fun recordCompletedDisplaySession() {
+        lifecycleScope.launch {
+            val repository = ledgramApplication.monetizationPreferencesRepository
+            val preferences = repository.recordDisplayCompletion()
+            val nowMillis = System.currentTimeMillis()
+            if (isInterstitialEligible(preferences, nowMillis)) {
+                ledgramApplication.adsManager.showInterstitialIfAvailable(
+                    activity = this@EditorActivity,
+                    onShown = {
+                        lifecycleScope.launch {
+                            repository.recordInterstitialShown(System.currentTimeMillis())
+                        }
+                    },
+                )
+            }
+            ledgramApplication.adsManager.preloadInterstitial()
+        }
     }
 }
 

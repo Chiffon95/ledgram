@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.map
 
 private const val EDITOR_PREFERENCES_NAME = "editor_preferences"
 
-private val Context.editorPreferencesDataStore by preferencesDataStore(
+internal val Context.editorPreferencesDataStore by preferencesDataStore(
     name = EDITOR_PREFERENCES_NAME,
     corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
 )
@@ -69,7 +69,19 @@ class EditorPreferencesRepository internal constructor(
     }
 
     suspend fun reset() {
-        dataStore.edit { it.clear() }
+        dataStore.edit { stored ->
+            stored.remove(EditorPreferenceKeys.message)
+            stored.remove(EditorPreferenceKeys.textColor)
+            stored.remove(EditorPreferenceKeys.backgroundColor)
+            stored.remove(EditorPreferenceKeys.bold)
+            stored.remove(EditorPreferenceKeys.italic)
+            stored.remove(EditorPreferenceKeys.underline)
+            stored.remove(EditorPreferenceKeys.renderStyle)
+            stored.remove(EditorPreferenceKeys.motionEffect)
+            stored.remove(EditorPreferenceKeys.visualEffect)
+            stored.remove(EditorPreferenceKeys.motionSpeedMultiplier)
+            stored.remove(EditorPreferenceKeys.effectSpeedMultiplier)
+        }
     }
 }
 

@@ -68,6 +68,7 @@
     <string name="settings_studio">스튜디오</string>
     <string name="studio_name">GWOL LABS</string>
     <string name="settings_privacy_legal">개인정보 및 법적 고지</string>
+    <string name="settings_privacy_options">Privacy Options</string>
     <string name="settings_privacy_policy">개인정보 처리방침</string>
     <string name="settings_open_source_licenses">오픈 소스 라이선스</string>
     <string name="settings_not_available_yet">아직 제공되지 않음</string>

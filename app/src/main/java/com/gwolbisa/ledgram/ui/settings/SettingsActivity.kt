@@ -8,10 +8,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gwolbisa.ledgram.LEDgramApplication
 import com.gwolbisa.ledgram.ui.theme.LEDgramTheme
 import com.gwolbisa.ledgram.util.applyOrientationPolicy
 
 class SettingsActivity : ComponentActivity() {
+    private val ledgramApplication: LEDgramApplication
+        get() = application as LEDgramApplication
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         applySettingsOrientationPolicy()
@@ -19,8 +25,15 @@ class SettingsActivity : ComponentActivity() {
 
         setContent {
             LEDgramTheme {
+                val privacyOptionsRequired by ledgramApplication.consentManager
+                    .privacyOptionsRequired
+                    .collectAsStateWithLifecycle()
                 SettingsScreen(
                     versionName = loadVersionName(),
+                    showPrivacyOptions = privacyOptionsRequired,
+                    onPrivacyOptions = {
+                        ledgramApplication.consentManager.showPrivacyOptionsForm(this)
+                    },
                     onBack = onBackPressedDispatcher::onBackPressed,
                 )
             }

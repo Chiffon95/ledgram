@@ -1,5 +1,6 @@
 package com.gwolbisa.ledgram.ui.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,8 @@ private val SettingsContentMaxWidth = 720.dp
 @Composable
 fun SettingsScreen(
     versionName: String,
+    showPrivacyOptions: Boolean,
+    onPrivacyOptions: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -92,6 +95,12 @@ fun SettingsScreen(
                 )
 
                 SettingsSectionTitle(stringResource(R.string.settings_privacy_legal))
+                if (showPrivacyOptions) {
+                    SettingsActionRow(
+                        label = stringResource(R.string.settings_privacy_options),
+                        onClick = onPrivacyOptions,
+                    )
+                }
                 SettingsRow(
                     label = stringResource(R.string.settings_privacy_policy),
                     value = stringResource(R.string.settings_not_available_yet),
@@ -103,6 +112,26 @@ fun SettingsScreen(
                 Spacer(Modifier.height(24.dp))
             }
         }
+    }
+}
+
+@Composable
+private fun SettingsActionRow(label: String, onClick: () -> Unit) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = label,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 

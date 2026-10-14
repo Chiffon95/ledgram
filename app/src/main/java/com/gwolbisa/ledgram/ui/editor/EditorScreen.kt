@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -48,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
@@ -60,6 +63,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gwolbisa.ledgram.R
+import com.gwolbisa.ledgram.ads.AdaptiveBanner
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.model.MotionEffect
 import com.gwolbisa.ledgram.model.RenderStyle
@@ -98,6 +102,7 @@ fun EditorScreen(
     onUiStateChange: (EditorUiState) -> Unit,
     onStartDisplay: (DisplayConfig) -> Unit,
     onOpenSettings: () -> Unit,
+    showBanner: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     var colorTargetName by rememberSaveable { mutableStateOf(ColorTarget.TEXT.name) }
@@ -172,6 +177,7 @@ fun EditorScreen(
             EditorBottomActions(
                 enabled = uiState.canStartDisplay,
                 onStartDisplay = { onStartDisplay(displayConfig) },
+                showBanner = showBanner,
             )
         },
     ) { innerPadding ->
@@ -671,7 +677,13 @@ private fun SectionLabel(text: String) {
 }
 
 @Composable
-private fun EditorBottomActions(enabled: Boolean, onStartDisplay: () -> Unit) {
+private fun EditorBottomActions(
+    enabled: Boolean,
+    onStartDisplay: () -> Unit,
+    showBanner: Boolean,
+) {
+    val density = LocalDensity.current
+    val isKeyboardVisible = WindowInsets.ime.getBottom(density) > 0
     Surface(
         modifier = Modifier
             .navigationBarsPadding()
@@ -679,14 +691,22 @@ private fun EditorBottomActions(enabled: Boolean, onStartDisplay: () -> Unit) {
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 12.dp,
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
                     PaddingValues(start = 20.dp, top = 14.dp, end = 20.dp, bottom = 16.dp),
                 ),
-            contentAlignment = Alignment.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            if (showBanner && !isKeyboardVisible) {
+                AdaptiveBanner(
+                    modifier = Modifier
+                        .widthIn(max = EditorContentMaxWidth)
+                        .fillMaxWidth(),
+                )
+                Spacer(Modifier.height(10.dp))
+            }
             Button(
                 onClick = onStartDisplay,
                 enabled = enabled,

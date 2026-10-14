@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Official Google Android test IDs. Replace this complete set before production release. -->
+    <string name="google_test_admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="google_test_adaptive_banner_id" translatable="false">ca-app-pub-3940256099942544/9214589741</string>
+    <string name="google_test_interstitial_id" translatable="false">ca-app-pub-3940256099942544/1033173712</string>
+</resources>

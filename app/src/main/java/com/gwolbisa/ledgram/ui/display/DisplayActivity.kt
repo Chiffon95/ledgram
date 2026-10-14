@@ -1,10 +1,12 @@
 package com.gwolbisa.ledgram.ui.display
 
+import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.content.IntentCompat
@@ -17,6 +19,7 @@ import com.gwolbisa.ledgram.util.applyOrientationPolicy
 
 class DisplayActivity : ComponentActivity() {
     private var previousBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+    private val completionTracker = DisplaySessionCompletionTracker()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,12 +37,13 @@ class DisplayActivity : ComponentActivity() {
             finish()
             return
         }
+        onBackPressedDispatcher.addCallback(this) { completeDisplaySession() }
 
         setContent {
             LEDgramTheme {
                 DisplayScreen(
                     config = config,
-                    onExit = ::finish,
+                    onExit = ::completeDisplaySession,
                 )
             }
         }
@@ -76,6 +80,13 @@ class DisplayActivity : ComponentActivity() {
             hide(WindowInsetsCompat.Type.systemBars())
             systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    private fun completeDisplaySession() {
+        completionTracker.completeOnce {
+            setResult(Activity.RESULT_OK)
+            finish()
         }
     }
 

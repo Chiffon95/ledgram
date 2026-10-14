@@ -7,6 +7,8 @@ activityCompose = "1.12.2"
 composeBom = "2025.11.00"
 dataStore = "1.2.1"
 lifecycle = "2.10.0"
+playServicesAds = "25.5.0"
+userMessagingPlatform = "4.0.0"
 junit = "4.13.2"
 
 [libraries]
@@ -22,6 +24,8 @@ androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "dataStore" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+google-play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
+google-user-messaging-platform = { module = "com.google.android.ump:user-messaging-platform", version.ref = "userMessagingPlatform" }
 junit = { module = "junit:junit", version.ref = "junit" }
 
 [plugins]
