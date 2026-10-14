@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,6 +21,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import com.gwolbisa.ledgram.BuildConfig
 import com.gwolbisa.ledgram.LEDgramApplication
 import com.gwolbisa.ledgram.R
 import com.gwolbisa.ledgram.ads.InterstitialPreloadCoordinator
@@ -66,6 +68,7 @@ class EditorActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        logLifecycle("onCreate")
         val previewPlaceholder = getString(R.string.message_placeholder)
         lifecycleScope.launch(Dispatchers.Default) {
             try {
@@ -120,7 +123,33 @@ class EditorActivity : AppCompatActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        logLifecycle("onConfigurationChanged", newConfig)
         applyEditorOrientationPolicy(newConfig)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        logLifecycle("onStart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        logLifecycle("onResume")
+    }
+
+    override fun onPause() {
+        logLifecycle("onPause")
+        super.onPause()
+    }
+
+    override fun onStop() {
+        logLifecycle("onStop")
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        logLifecycle("onDestroy")
+        super.onDestroy()
     }
 
     private fun applyEditorOrientationPolicy(
@@ -174,6 +203,24 @@ class EditorActivity : AppCompatActivity() {
         } else {
             interstitialPreloadRequest + 1
         }
+    }
+
+    private fun logLifecycle(
+        event: String,
+        configuration: Configuration = resources.configuration,
+    ) {
+        if (!BuildConfig.DEBUG) return
+        Log.d(
+            LOG_TAG,
+            "$event instance=${System.identityHashCode(this)} " +
+                "orientation=${configuration.orientation} " +
+                "widthDp=${configuration.screenWidthDp} " +
+                "heightDp=${configuration.screenHeightDp}",
+        )
+    }
+
+    private companion object {
+        const val LOG_TAG = "LEDgramEditor"
     }
 }
 

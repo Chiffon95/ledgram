@@ -1,5 +1,6 @@
 package com.gwolbisa.ledgram.ads
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredSize
@@ -16,6 +17,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.gwolbisa.ledgram.BuildConfig
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
@@ -28,6 +30,7 @@ fun EditorBannerAd(modifier: Modifier = Modifier) {
         AdView(context).apply {
             adUnitId = context.getString(AdConfig.TEST_BANNER_ID)
             setAdSize(AdSize.BANNER)
+            logBannerLifecycle("create", this)
         }
     }
 
@@ -36,13 +39,17 @@ fun EditorBannerAd(modifier: Modifier = Modifier) {
             when (event) {
                 Lifecycle.Event.ON_RESUME -> adView.resume()
                 Lifecycle.Event.ON_PAUSE -> adView.pause()
-                Lifecycle.Event.ON_DESTROY -> adView.destroy()
+                Lifecycle.Event.ON_DESTROY -> {
+                    logBannerLifecycle("lifecycle destroy", adView)
+                    adView.destroy()
+                }
                 else -> Unit
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+            logBannerLifecycle("dispose/destroy", adView)
             adView.destroy()
         }
     }
@@ -51,6 +58,7 @@ fun EditorBannerAd(modifier: Modifier = Modifier) {
         // Attach and draw the AndroidView before asking the SDK to begin network/render work.
         withFrameNanos { }
         try {
+            logBannerLifecycle("load request", adView)
             adView.loadAd(AdRequest.Builder().build())
         } catch (_: RuntimeException) {
             // Ads are optional; the Editor remains fully usable.
@@ -64,6 +72,15 @@ fun EditorBannerAd(modifier: Modifier = Modifier) {
         AndroidView(
             factory = { adView },
             modifier = Modifier.requiredSize(width = 320.dp, height = 50.dp),
+        )
+    }
+}
+
+private fun logBannerLifecycle(event: String, adView: AdView) {
+    if (BuildConfig.DEBUG) {
+        Log.d(
+            "LEDgramBanner",
+            "$event instance=${System.identityHashCode(adView)}",
         )
     }
 }

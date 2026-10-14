@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
@@ -13,6 +14,7 @@ import androidx.core.content.IntentCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.gwolbisa.ledgram.BuildConfig
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.ui.theme.LEDgramTheme
 import com.gwolbisa.ledgram.util.applyOrientationPolicy
@@ -23,6 +25,7 @@ class DisplayActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        logLifecycle("onCreate")
         applyDisplayOrientationPolicy()
         enableEdgeToEdge()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -51,7 +54,13 @@ class DisplayActivity : AppCompatActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        logLifecycle("onConfigurationChanged", newConfig)
         applyDisplayOrientationPolicy(newConfig)
+    }
+
+    override fun onDestroy() {
+        logLifecycle("onDestroy")
+        super.onDestroy()
     }
 
     override fun onResume() {
@@ -99,8 +108,23 @@ class DisplayActivity : AppCompatActivity() {
         )
     }
 
+    private fun logLifecycle(
+        event: String,
+        configuration: Configuration = resources.configuration,
+    ) {
+        if (!BuildConfig.DEBUG) return
+        Log.d(
+            LOG_TAG,
+            "$event instance=${System.identityHashCode(this)} " +
+                "orientation=${configuration.orientation} " +
+                "widthDp=${configuration.screenWidthDp} " +
+                "heightDp=${configuration.screenHeightDp}",
+        )
+    }
+
     companion object {
         const val EXTRA_DISPLAY_CONFIG = "com.gwolbisa.ledgram.extra.DISPLAY_CONFIG"
+        private const val LOG_TAG = "LEDgramDisplay"
     }
 }
 

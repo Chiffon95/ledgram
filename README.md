@@ -13,7 +13,7 @@ Android LED signboard app for concerts, cheering, events, and quick fullscreen m
 
 - Developer: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
-- Version: `0.9.7` (`versionCode 16`)
+- Version: `0.9.8` (`versionCode 17`)
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
 
