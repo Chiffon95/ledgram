@@ -13,16 +13,16 @@ internal const val DOT_MATRIX_ITALIC_OVERSCAN_RATIO = 1.2f
 internal const val DOT_MATRIX_UNDERLINE_SPACING_RATIO = 0.8f
 internal const val DOT_MATRIX_UNDERLINE_HEIGHT_RATIO = 1f
 
-internal val DOT_MATRIX_GLYPH_WIDTH_UNITS =
-    DOT_MATRIX_GLYPH_WIDTH + (DOT_MATRIX_GLYPH_WIDTH - 1) * DOT_MATRIX_DOT_GAP_RATIO
-internal val DOT_MATRIX_GLYPH_HEIGHT_UNITS =
-    DOT_MATRIX_GLYPH_HEIGHT + (DOT_MATRIX_GLYPH_HEIGHT - 1) * DOT_MATRIX_DOT_GAP_RATIO
-
 internal fun dotMatrixGlyphWidthUnits(glyph: DotMatrixGlyph): Float =
     glyph.width + (glyph.width - 1) * DOT_MATRIX_DOT_GAP_RATIO
 
 internal fun dotMatrixGlyphHeightUnits(glyph: DotMatrixGlyph): Float =
     glyph.height + (glyph.height - 1) * DOT_MATRIX_DOT_GAP_RATIO
+
+internal fun dotMatrixGlyphBaselineUnits(glyph: DotMatrixGlyph): Float =
+    if (glyph.baseline == 0) 0f else {
+        glyph.baseline + (glyph.baseline - 1) * DOT_MATRIX_DOT_GAP_RATIO
+    }
 
 internal fun dotMatrixItalicOffsetUnits(glyph: DotMatrixGlyph, row: Int): Float {
     require(row in 0 until glyph.height)
@@ -30,10 +30,10 @@ internal fun dotMatrixItalicOffsetUnits(glyph: DotMatrixGlyph, row: Int): Float 
         (glyph.height - 1 - row) / (glyph.height - 1).coerceAtLeast(1)
 }
 
-internal fun dotMatrixVerticalAlignmentOffsetUnits(
-    lineContentHeightUnits: Float,
+internal fun dotMatrixBaselineAlignmentOffsetUnits(
+    lineBaselineUnits: Float,
     glyph: DotMatrixGlyph,
-): Float = (lineContentHeightUnits - dotMatrixGlyphHeightUnits(glyph)) / 2f
+): Float = lineBaselineUnits - dotMatrixGlyphBaselineUnits(glyph)
 
 internal data class DotMatrixBlockSize(
     val width: Float,
@@ -54,6 +54,7 @@ internal data class DotMatrixLineLayout(
     val glyphs: List<DotMatrixGlyph>,
     val contentWidthUnits: Float,
     val contentHeightUnits: Float,
+    val baselineUnits: Float,
     val widthUnits: Float,
     val heightUnits: Float,
     val underlined: Boolean,
@@ -100,17 +101,23 @@ internal fun calculateDotMatrixLineWidthUnits(
 
 internal fun createDotMatrixBlockLayout(
     message: String,
+    glyphProvider: (Int) -> DotMatrixGlyph,
     bold: Boolean = false,
     italic: Boolean = false,
     underline: Boolean = false,
 ): DotMatrixBlockLayout {
     val styleGeometry = calculateDotMatrixStyleGeometry(bold, italic, underline)
     val lines = splitDotMatrixLines(message).map { line ->
-        val glyphs = line.codePoints().toArray().map(::dotMatrixGlyphFor)
+        val glyphs = line.codePoints().toArray().map(glyphProvider)
         val underlined = underline && glyphs.isNotEmpty()
-        // Preserve explicit empty lines at the compact font's normal line height.
-        val contentHeightUnits = glyphs.maxOfOrNull(::dotMatrixGlyphHeightUnits)
-            ?: DOT_MATRIX_GLYPH_HEIGHT_UNITS
+        val emptyLineGlyph = if (glyphs.isEmpty()) glyphProvider(' '.code) else null
+        val baselineUnits = glyphs.maxOfOrNull(::dotMatrixGlyphBaselineUnits)
+            ?: dotMatrixGlyphBaselineUnits(requireNotNull(emptyLineGlyph))
+        val descentUnits = glyphs.maxOfOrNull { glyph ->
+            dotMatrixGlyphHeightUnits(glyph) - dotMatrixGlyphBaselineUnits(glyph)
+        } ?: (dotMatrixGlyphHeightUnits(requireNotNull(emptyLineGlyph)) - baselineUnits)
+        // Empty logical lines use the provider's space line box without adding a visible glyph.
+        val contentHeightUnits = baselineUnits + descentUnits
         val contentWidthUnits = if (glyphs.isEmpty()) {
             0f
         } else {
@@ -121,6 +128,7 @@ internal fun createDotMatrixBlockLayout(
             glyphs = glyphs,
             contentWidthUnits = contentWidthUnits,
             contentHeightUnits = contentHeightUnits,
+            baselineUnits = baselineUnits,
             widthUnits = calculateDotMatrixLineWidthUnits(glyphs, styleGeometry),
             heightUnits = contentHeightUnits +
                 (if (glyphs.isNotEmpty()) styleGeometry.boldExtraHeightUnits else 0f) +
@@ -143,11 +151,12 @@ internal fun createDotMatrixBlockLayout(
 internal fun calculateDotMatrixBlockSize(
     message: String,
     dotSize: Float,
+    glyphProvider: (Int) -> DotMatrixGlyph,
     bold: Boolean = false,
     italic: Boolean = false,
     underline: Boolean = false,
 ): DotMatrixBlockSize {
-    val layout = createDotMatrixBlockLayout(message, bold, italic, underline)
+    val layout = createDotMatrixBlockLayout(message, glyphProvider, bold, italic, underline)
     return DotMatrixBlockSize(
         width = layout.widthUnits * dotSize,
         height = layout.heightUnits * dotSize,

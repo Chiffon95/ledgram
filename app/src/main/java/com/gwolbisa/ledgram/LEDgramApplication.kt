@@ -4,6 +4,7 @@ import android.app.Application
 import com.gwolbisa.ledgram.ads.AdsManager
 import com.gwolbisa.ledgram.ads.ConsentManager
 import com.gwolbisa.ledgram.data.MonetizationPreferencesRepository
+import com.gwolbisa.ledgram.ui.components.PixelFontGlyphProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -11,6 +12,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class LEDgramApplication : Application() {
+    internal val dotMatrixGlyphProvider: PixelFontGlyphProvider by lazy {
+        PixelFontGlyphProvider(this)
+    }
     lateinit var consentManager: ConsentManager
         private set
     lateinit var adsManager: AdsManager

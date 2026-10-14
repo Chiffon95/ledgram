@@ -13,7 +13,7 @@ Android LED signboard app for concerts, cheering, events, and quick fullscreen m
 
 - Developer: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
-- Version: `0.9.2` (`versionCode 11`)
+- Version: `0.9.3` (`versionCode 12`)
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
 
@@ -55,7 +55,7 @@ Core features are mostly done. The project is in release-prep.
   - Pulse
   - Fade
 - Motion Speed / Effect Speed: `0.25x ~ 5.0x`
-- Live Preview
+- Preview
 - compact Preview header with Settings access; no full Editor app bar
 
 When the message is empty, `Hello!` is shown in Preview only. It is not persisted or sent to Display.
@@ -88,19 +88,19 @@ Korean, English, and other Unicode text render within system font support.
 
 ### Dot Matrix
 
-Programmatic glyphs: 5×7 for Latin/digits/punctuation and 11×11 for composed Korean Hangul syllables.
+Circular LED dots generated from pixel masks rasterized with the bundled Galmuri11 v2.40.4 font.
 
 Supported:
 
-- A–Z
-- a–z → uppercase
+- uppercase and lowercase Latin with input case preserved
 - 0–9
 - spaces
-- `. , ! ? : ; - _ + / \\ ( ) [ ] # @`
 - modern precomposed Korean Hangul syllables (`U+AC00..U+D7A3`)
+- Hangul Compatibility Jamo, including standalone consonants and vowels
+- modern Hangul Jamo included by the font
 - mixed Korean/English text
 
-Hangul is built deterministically from reusable choseong/jungseong/jongseong stroke templates; it does not depend on device fonts. Unsupported Unicode uses one `?` per code point.
+Galmuri11 is used only as the offline glyph-shape source; rendering remains LEDgram's circular-dot Canvas. Rasterized glyphs are cached by Unicode code point. Unsupported Unicode uses one `?` per code point.
 
 Styles:
 
@@ -174,6 +174,8 @@ Settings includes:
 - Privacy Options — only when UMP requires it
 
 The Open Source Licenses screen shows library and license names only. Google advertising and consent SDKs remain in a separate Third-party SDKs notice.
+
+Bundled font: [Galmuri11 v2.40.4](https://github.com/quiple/galmuri/releases/tag/v2.40.4), distributed under the SIL Open Font License 1.1. The upstream license text is packaged with the app.
 
 Current setup:
 

@@ -28,9 +28,15 @@ import com.gwolbisa.ledgram.util.applyOrientationPolicy
 private data class LicenseEntry(
     val library: String,
     val license: String,
+    val packagedLicenseResource: Int? = null,
 )
 
 private val licenseEntries = listOf(
+    LicenseEntry(
+        library = "Galmuri",
+        license = "SIL Open Font License 1.1",
+        packagedLicenseResource = R.raw.galmuri_ofl,
+    ),
     LicenseEntry(
         library = "AndroidX",
         license = "Apache License 2.0",

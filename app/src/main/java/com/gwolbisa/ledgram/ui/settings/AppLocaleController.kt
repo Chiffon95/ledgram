@@ -1,37 +1,23 @@
 package com.gwolbisa.ledgram.ui.settings
 
-import android.app.Activity
-import android.app.LocaleManager
-import android.os.Build
-import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 
-internal class AppLocaleController(
-    private val activity: Activity,
-) {
+internal class AppLocaleController {
     fun currentLanguage(): AppLanguage = AppLanguage.fromLanguageTags(currentLanguageTags())
 
     fun applyLanguage(language: AppLanguage): Boolean {
         if (language == currentLanguage()) return false
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            activity.getSystemService(LocaleManager::class.java).applicationLocales =
-                LocaleList.forLanguageTags(language.languageTag)
+        val locales = if (language == AppLanguage.SYSTEM_DEFAULT) {
+            LocaleListCompat.getEmptyLocaleList()
         } else {
-            AppCompatDelegate.setApplicationLocales(
-                LocaleListCompat.forLanguageTags(language.languageTag),
-            )
+            LocaleListCompat.forLanguageTags(language.languageTag)
         }
+        AppCompatDelegate.setApplicationLocales(locales)
         return true
     }
 
     private fun currentLanguageTags(): String =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            activity.getSystemService(LocaleManager::class.java)
-                .applicationLocales
-                .toLanguageTags()
-        } else {
-            AppCompatDelegate.getApplicationLocales().toLanguageTags()
-        }
+        AppCompatDelegate.getApplicationLocales().toLanguageTags()
 }

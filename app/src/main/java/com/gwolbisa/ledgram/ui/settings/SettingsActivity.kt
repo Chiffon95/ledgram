@@ -23,7 +23,7 @@ class SettingsActivity : AppCompatActivity() {
     private val ledgramApplication: LEDgramApplication
         get() = application as LEDgramApplication
     private val editorPreferencesRepository by lazy { EditorPreferencesRepository(this) }
-    private val appLocaleController by lazy { AppLocaleController(this) }
+    private val appLocaleController by lazy { AppLocaleController() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,7 +87,9 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun applyLanguage(language: AppLanguage) {
-        appLocaleController.applyLanguage(language)
+        if (language == appLocaleController.currentLanguage()) return
+        // Let Compose remove the selection dialog before AppCompat dispatches the locale change.
+        window.decorView.post { appLocaleController.applyLanguage(language) }
     }
 
     private suspend fun resetEditorSettings(): Boolean = try {

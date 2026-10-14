@@ -14,9 +14,11 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.gwolbisa.ledgram.LEDgramApplication
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.model.MotionEffect
 
@@ -31,9 +33,18 @@ internal fun DotMatrixRenderer(
 ) {
     if (config.message.isEmpty()) return
 
-    val layout = remember(config.message, config.bold, config.italic, config.underline) {
+    val application = LocalContext.current.applicationContext as LEDgramApplication
+    val glyphProvider = application.dotMatrixGlyphProvider
+    val layout = remember(
+        config.message,
+        config.bold,
+        config.italic,
+        config.underline,
+        glyphProvider,
+    ) {
         createDotMatrixBlockLayout(
             message = config.message,
+            glyphProvider = glyphProvider::glyphFor,
             bold = config.bold,
             italic = config.italic,
             underline = config.underline,
@@ -202,7 +213,7 @@ private fun DotMatrixCanvas(
             var glyphStartX = lineStartX + boldHorizontalOverscanPx
             line.glyphs.forEach { glyph ->
                 val glyphStartY = lineStartY + boldVerticalOverscanPx +
-                    dotMatrixVerticalAlignmentOffsetUnits(line.contentHeightUnits, glyph) * dotSizePx
+                    dotMatrixBaselineAlignmentOffsetUnits(line.baselineUnits, glyph) * dotSizePx
                 for (row in 0 until glyph.height) {
                     val italicOffsetPx = if (layout.italic) {
                         dotMatrixItalicOffsetUnits(glyph, row) * dotSizePx

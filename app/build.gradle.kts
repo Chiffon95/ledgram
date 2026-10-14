@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.security.MessageDigest
 
 plugins {
     alias(libs.plugins.android.application)
@@ -14,8 +15,8 @@ android {
         applicationId = "com.gwolbisa.ledgram"
         minSdk = 24
         targetSdk = 36
-        versionCode = 11
-        versionName = "0.9.2"
+        versionCode = 12
+        versionName = "0.9.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -69,5 +70,21 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)
+}
+
+val verifyGalmuriFont = tasks.register("verifyGalmuriFont") {
+    val fontFile = layout.projectDirectory.file("src/main/res/font/galmuri11.ttf")
+    inputs.file(fontFile)
+    doLast {
+        val expectedSha256 = "e24256f42e43713d2ea086a1e1669d78b968f5b3cc547e5c157f0606ffa5def1"
+        val digest = MessageDigest.getInstance("SHA-256")
+            .digest(fontFile.asFile.readBytes())
+            .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xFF) }
+        check(digest == expectedSha256) { "Bundled Galmuri11 v2.40.4 font checksum mismatch" }
+    }
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(verifyGalmuriFont)
 }
 

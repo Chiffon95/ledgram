@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">LEDgram</string>
-    <string name="preview_label">Live Preview</string>
+    <string name="preview_label">Preview</string>
     <string name="message_label">Message</string>
     <string name="message_placeholder">Hello!</string>
     <string name="character_counter">%1$d / %2$d</string>

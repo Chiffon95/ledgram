@@ -2,280 +2,174 @@ package com.gwolbisa.ledgram.ui.components
 
 import com.gwolbisa.ledgram.model.MotionEffect
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DotMatrixLayoutTest {
-    @Test
-    fun `single line block dimensions use glyph grid`() {
-        val size = calculateDotMatrixBlockSize(message = "A", dotSize = 1f)
+    private val latinUpper = solidGlyph(width = 5, height = 8, baseline = 6)
+    private val latinLower = solidGlyph(width = 4, height = 8, baseline = 6)
+    private val hangul = solidGlyph(width = 12, height = 16, baseline = 13)
+    private val jamo = solidGlyph(width = 8, height = 16, baseline = 13)
 
-        assertEquals(6.2f, size.width, 0.0001f)
-        assertEquals(8.8f, size.height, 0.0001f)
-    }
-
-    @Test
-    fun `widest line controls multiline width and line count controls height`() {
-        val layout = createDotMatrixBlockLayout("AAAA\nA\nAA")
-
-        assertEquals(3, layout.lines.size)
-        assertEquals(layout.lines[0].widthUnits, layout.widthUnits, 0.0001f)
-        assertTrue(layout.lines[0].widthUnits > layout.lines[2].widthUnits)
-        assertEquals(29f, layout.heightUnits, 0.0001f)
-    }
-
-    @Test
-    fun `supplementary unicode uses one fallback glyph`() {
-        val emoji = createDotMatrixBlockLayout("😀", bold = true, italic = true)
-        val fallback = createDotMatrixBlockLayout("?", bold = true, italic = true)
-
-        assertEquals(fallback.widthUnits, emoji.widthUnits, 0f)
-        assertEquals(1, emoji.lines.single().glyphs.size)
-    }
-
-    @Test
-    fun `mixed Korean English and digits use actual glyph widths`() {
-        val layout = createDotMatrixBlockLayout("LEDgram 최고 123")
-        val glyphs = layout.lines.single().glyphs
-        val expectedContentWidth = glyphs.sumOf {
-            dotMatrixGlyphWidthUnits(it).toDouble()
-        }.toFloat() + (glyphs.size - 1) * DOT_MATRIX_CHARACTER_GAP_RATIO
-
-        assertTrue(glyphs.any { it.width == DOT_MATRIX_GLYPH_WIDTH })
-        assertTrue(glyphs.any { it.width == DOT_MATRIX_HANGUL_GLYPH_WIDTH })
-        assertEquals(expectedContentWidth, layout.lines.single().contentWidthUnits, 0.0001f)
-        assertEquals(expectedContentWidth, layout.widthUnits, 0.0001f)
-    }
-
-    @Test
-    fun `mixed line uses tallest glyph and centers shorter glyph geometry`() {
-        val layout = createDotMatrixBlockLayout("GO 한국")
-        val line = layout.lines.single()
-        val latin = dotMatrixGlyphFor('G')
-        val hangul = dotMatrixGlyphFor('한')
-
-        assertEquals(
-            dotMatrixGlyphHeightUnits(hangul),
-            line.contentHeightUnits,
-            0.0001f,
-        )
-        assertTrue(line.contentHeightUnits > dotMatrixGlyphHeightUnits(latin))
-        assertTrue(dotMatrixVerticalAlignmentOffsetUnits(line.contentHeightUnits, latin) > 0f)
-        assertEquals(0f, dotMatrixVerticalAlignmentOffsetUnits(line.contentHeightUnits, hangul), 0f)
-    }
-
-    @Test
-    fun `italic slant scales over each glyph row count`() {
-        listOf(dotMatrixGlyphFor('A'), dotMatrixGlyphFor('한')).forEach { glyph ->
-            assertEquals(
-                DOT_MATRIX_ITALIC_OVERSCAN_RATIO,
-                dotMatrixItalicOffsetUnits(glyph, 0),
-                0f,
-            )
-            assertEquals(0f, dotMatrixItalicOffsetUnits(glyph, glyph.height - 1), 0f)
+    private val fakeProvider: (Int) -> DotMatrixGlyph = { codePoint ->
+        when (codePoint) {
+            in 'A'.code..'Z'.code -> latinUpper
+            in 'a'.code..'z'.code -> latinLower
+            in '0'.code..'9'.code, ' '.code, '!'.code, '?'.code -> latinUpper
+            in 0xAC00..0xD7A3 -> hangul
+            in 0x3131..0x318E, in 0x1100..0x11FF -> jamo
+            else -> FALLBACK_GLYPH
         }
     }
 
     @Test
-    fun `multiline Hangul centers logical lines in widest block`() {
-        val layout = createDotMatrixBlockLayout("안녕하세요\nLEDgram")
+    fun `lowercase reaches provider without uppercase normalization`() {
+        val requestedCodePoints = mutableListOf<Int>()
+        val layout = createDotMatrixBlockLayout("AbC", glyphProvider = { codePoint ->
+            requestedCodePoints += codePoint
+            fakeProvider(codePoint)
+        })
 
-        assertEquals(2, layout.lines.size)
-        assertEquals(layout.lines.maxOf { it.widthUnits }, layout.widthUnits, 0.0001f)
-        assertTrue(layout.heightUnits > layout.lines.sumOf { it.contentHeightUnits.toDouble() })
+        assertEquals(listOf('A'.code, 'b'.code, 'C'.code), requestedCodePoints)
+        assertEquals(latinLower.width, layout.lines.single().glyphs[1].width)
+        assertNotEquals(layout.lines.single().glyphs[0].width, layout.lines.single().glyphs[1].width)
     }
 
     @Test
-    fun `Hangul styles include bold italic and underline geometry`() {
-        val normal = createDotMatrixBlockLayout("응원\nGO GO")
-        val styled = createDotMatrixBlockLayout("응원\nGO GO", bold = true, italic = true, underline = true)
+    fun `mixed variable width line uses actual glyph widths`() {
+        val layout = createDotMatrixBlockLayout("LEDgram 최고 123", fakeProvider)
+        val glyphs = layout.lines.single().glyphs
+        val expectedWidth = glyphs.sumOf { dotMatrixGlyphWidthUnits(it).toDouble() }.toFloat() +
+            (glyphs.size - 1) * DOT_MATRIX_CHARACTER_GAP_RATIO
 
-        assertEquals(DOT_MATRIX_BOLD_RADIUS_RATIO, dotMatrixDotRadiusUnits(styled.bold), 0f)
-        assertTrue(styled.widthUnits > normal.widthUnits)
-        assertTrue(styled.heightUnits > normal.heightUnits)
-        assertTrue(styled.lines.all { it.underlined })
-        assertTrue(calculateFittingDotSize(styled, 320f, 180f, fitWidth = true) > 0f)
-        assertTrue(calculateFittingDotSize(styled, 0f, 180f, fitWidth = false) > 0f)
+        assertTrue(glyphs.any { it.width == latinUpper.width })
+        assertTrue(glyphs.any { it.width == latinLower.width })
+        assertTrue(glyphs.any { it.width == hangul.width })
+        assertEquals(expectedWidth, layout.widthUnits, 0.0001f)
     }
 
     @Test
-    fun `bold single-dot radius adds symmetric geometry and preserves spacing`() {
-        val normal = createDotMatrixBlockLayout("LEDGRAM")
-        val bold = createDotMatrixBlockLayout("LEDGRAM", bold = true)
-        val italic = createDotMatrixBlockLayout("LEDGRAM", italic = true)
-        val combined = createDotMatrixBlockLayout("LEDGRAM", bold = true, italic = true)
+    fun `Hangul Latin and Jamo share a stable baseline`() {
+        val layout = createDotMatrixBlockLayout("a한ㄱ", fakeProvider)
+        val line = layout.lines.single()
+
+        assertEquals(dotMatrixGlyphBaselineUnits(hangul), line.baselineUnits, 0f)
+        assertTrue(dotMatrixBaselineAlignmentOffsetUnits(line.baselineUnits, latinLower) > 0f)
+        assertEquals(0f, dotMatrixBaselineAlignmentOffsetUnits(line.baselineUnits, hangul), 0f)
+        assertEquals(0f, dotMatrixBaselineAlignmentOffsetUnits(line.baselineUnits, jamo), 0f)
+    }
+
+    @Test
+    fun `compatibility and modern Jamo use provider glyph geometry`() {
+        val layout = createDotMatrixBlockLayout("ㄱㄴㄷ ㅏㅑㅓ 가", fakeProvider)
+
+        assertEquals(jamo.width, layout.lines.single().glyphs.first().width)
+        assertTrue(layout.lines.single().glyphs.count { it.width == jamo.width } >= 8)
+    }
+
+    @Test
+    fun `supplementary Unicode requests one fallback glyph`() {
+        val requestedCodePoints = mutableListOf<Int>()
+        val layout = createDotMatrixBlockLayout("😀", glyphProvider = { codePoint ->
+            requestedCodePoints += codePoint
+            fakeProvider(codePoint)
+        })
+
+        assertEquals(listOf(0x1F600), requestedCodePoints)
+        assertEquals(1, layout.lines.single().glyphs.size)
+        assertEquals(FALLBACK_GLYPH, layout.lines.single().glyphs.single())
+    }
+
+    @Test
+    fun `multiline keeps empty lines and widest logical line`() {
+        val layout = createDotMatrixBlockLayout("안녕하세요\n\nLEDgram", fakeProvider)
+
+        assertEquals(3, layout.lines.size)
+        assertEquals(layout.lines.maxOf { it.widthUnits }, layout.widthUnits, 0f)
+        assertTrue(layout.lines[1].glyphs.isEmpty())
+        assertTrue(layout.lines[1].heightUnits > 0f)
+    }
+
+    @Test
+    fun `bold stays one larger dot with symmetric geometry`() {
+        val normal = createDotMatrixBlockLayout("한글", fakeProvider)
+        val bold = createDotMatrixBlockLayout("한글", fakeProvider, bold = true)
 
         assertEquals(
             normal.widthUnits + DOT_MATRIX_BOLD_OVERSCAN_RATIO * 2f,
             bold.widthUnits,
             0.0001f,
         )
-        assertEquals(
-            normal.heightUnits + DOT_MATRIX_BOLD_OVERSCAN_RATIO * 2f,
-            bold.heightUnits,
-            0.0001f,
-        )
         assertEquals(DOT_MATRIX_BOLD_RADIUS_RATIO, dotMatrixDotRadiusUnits(true), 0f)
-        assertEquals(DOT_MATRIX_NORMAL_RADIUS_RATIO, dotMatrixDotRadiusUnits(false), 0f)
         assertTrue(DOT_MATRIX_BOLD_RADIUS_RATIO * 2f < 1f + DOT_MATRIX_DOT_GAP_RATIO)
-        assertEquals(
-            normal.widthUnits + DOT_MATRIX_ITALIC_OVERSCAN_RATIO,
-            italic.widthUnits,
-            0.0001f,
-        )
-        assertEquals(
-            normal.widthUnits + DOT_MATRIX_BOLD_OVERSCAN_RATIO * 2f +
-                DOT_MATRIX_ITALIC_OVERSCAN_RATIO,
-            combined.widthUnits,
-            0.0001f,
-        )
     }
 
     @Test
-    fun `underline increases non-empty line height and combines with other styles`() {
-        val normal = createDotMatrixBlockLayout("A")
-        val underline = createDotMatrixBlockLayout("A", underline = true)
-        val allStyles = createDotMatrixBlockLayout(
-            "A",
-            bold = true,
-            italic = true,
-            underline = true,
-        )
+    fun `italic slant scales over each glyph row count`() {
+        listOf(latinLower, hangul, jamo).forEach { glyph ->
+            assertEquals(DOT_MATRIX_ITALIC_OVERSCAN_RATIO, dotMatrixItalicOffsetUnits(glyph, 0), 0f)
+            assertEquals(0f, dotMatrixItalicOffsetUnits(glyph, glyph.height - 1), 0f)
+        }
+    }
 
+    @Test
+    fun `underline uses full mixed line geometry`() {
+        val normal = createDotMatrixBlockLayout("abc 한글", fakeProvider)
+        val underlined = createDotMatrixBlockLayout("abc 한글", fakeProvider, underline = true)
+
+        assertTrue(underlined.lines.single().underlined)
+        assertEquals(normal.widthUnits, underlined.widthUnits, 0f)
         assertEquals(
             normal.heightUnits + DOT_MATRIX_UNDERLINE_SPACING_RATIO +
                 DOT_MATRIX_UNDERLINE_HEIGHT_RATIO,
-            underline.heightUnits,
-            0.0001f,
-        )
-        assertTrue(allStyles.widthUnits > normal.widthUnits)
-        assertEquals(
-            normal.heightUnits + DOT_MATRIX_BOLD_OVERSCAN_RATIO * 2f +
-                DOT_MATRIX_UNDERLINE_SPACING_RATIO + DOT_MATRIX_BOLD_RADIUS_RATIO * 2f,
-            allStyles.heightUnits,
+            underlined.heightUnits,
             0.0001f,
         )
     }
 
     @Test
-    fun `multiline underline skips empty lines and widest styled line controls width`() {
+    fun `static fitting accounts for mixed styled bounds`() {
         val layout = createDotMatrixBlockLayout(
-            "HELLO\n\nWORLDWIDE",
+            "AbCd 한글\nㄱㄴㄷ 123",
+            fakeProvider,
             bold = true,
             italic = true,
             underline = true,
         )
+        val dotSize = calculateFittingDotSize(layout, 320f, 180f, fitWidth = true)
 
-        assertTrue(layout.lines[0].underlined)
-        assertTrue(!layout.lines[1].underlined)
-        assertTrue(layout.lines[2].underlined)
-        assertEquals(layout.lines[2].widthUnits, layout.widthUnits, 0.0001f)
-        val styledLineHeight = DOT_MATRIX_GLYPH_HEIGHT_UNITS +
-            DOT_MATRIX_BOLD_OVERSCAN_RATIO * 2f +
-            DOT_MATRIX_UNDERLINE_SPACING_RATIO + DOT_MATRIX_BOLD_RADIUS_RATIO * 2f
-        assertEquals(
-            styledLineHeight * 2f + DOT_MATRIX_GLYPH_HEIGHT_UNITS +
-                DOT_MATRIX_LINE_GAP_RATIO * 2f,
-            layout.heightUnits,
-            0.0001f,
-        )
+        assertTrue(dotSize > 0f)
+        assertTrue(layout.widthUnits * dotSize <= 320.0001f)
+        assertTrue(layout.heightUnits * dotSize <= 180.0001f)
     }
 
     @Test
-    fun `larger viewport allows a larger fitted dot`() {
-        val layout = createDotMatrixBlockLayout("HELLO\nWORLD")
+    fun `marquee uses full mixed block width and height fitting`() {
+        val layout = createDotMatrixBlockLayout("Hello 안녕\nGO!", fakeProvider)
+        val dotSize = calculateFittingDotSize(layout, 1f, 180f, fitWidth = false)
+        val blockWidth = layout.widthUnits * dotSize
+        val travel = calculateMarqueeTravelBounds(1_000f, blockWidth, MotionEffect.RIGHT_TO_LEFT)
+
+        assertTrue(dotSize > 0f)
+        assertEquals(1_000f, travel.startPx, 0f)
+        assertEquals(-blockWidth, travel.endPx, 0f)
+    }
+
+    @Test
+    fun `larger viewport allows larger fitted dots`() {
+        val layout = createDotMatrixBlockLayout("Hello 안녕", fakeProvider)
         val small = calculateFittingDotSize(layout, 200f, 100f, fitWidth = true)
         val large = calculateFittingDotSize(layout, 400f, 200f, fitWidth = true)
 
         assertEquals(small * 2f, large, 0.0001f)
     }
 
-    @Test
-    fun `static fitting accounts for combined styled bounds`() {
-        val normal = createDotMatrixBlockLayout("HELLO\nWORLD")
-        val styled = createDotMatrixBlockLayout(
-            "HELLO\nWORLD",
-            bold = true,
-            italic = true,
-            underline = true,
+    private fun solidGlyph(width: Int, height: Int, baseline: Int): DotMatrixGlyph =
+        DotMatrixGlyph(
+            width = width,
+            height = height,
+            rows = List(height) { (1 shl width) - 1 },
+            baseline = baseline,
         )
-
-        val normalDotSize = calculateFittingDotSize(normal, 200f, 100f, fitWidth = true)
-        val styledDotSize = calculateFittingDotSize(styled, 200f, 100f, fitWidth = true)
-
-        assertTrue(styledDotSize < normalDotSize)
-    }
-
-    @Test
-    fun `every style combination has valid multiline static and marquee geometry`() {
-        val combinations = listOf(
-            Triple(false, false, false),
-            Triple(true, false, false),
-            Triple(false, true, false),
-            Triple(false, false, true),
-            Triple(true, true, false),
-            Triple(true, false, true),
-            Triple(false, true, true),
-            Triple(true, true, true),
-        )
-
-        combinations.forEach { (bold, italic, underline) ->
-            val layout = createDotMatrixBlockLayout(
-                message = "LED\nGRAM",
-                bold = bold,
-                italic = italic,
-                underline = underline,
-            )
-            val staticDotSize = calculateFittingDotSize(
-                layout = layout,
-                availableWidth = 320f,
-                availableHeight = 180f,
-                fitWidth = true,
-            )
-            val marqueeDotSize = calculateFittingDotSize(
-                layout = layout,
-                availableWidth = 0f,
-                availableHeight = 180f,
-                fitWidth = false,
-            )
-
-            assertTrue(staticDotSize > 0f)
-            assertTrue(marqueeDotSize > 0f)
-            assertTrue(layout.widthUnits * staticDotSize <= 320.0001f)
-            assertTrue(layout.heightUnits * staticDotSize <= 180.0001f)
-            assertTrue(layout.heightUnits * marqueeDotSize <= 180.0001f)
-            assertTrue(layout.widthUnits * marqueeDotSize > 0f)
-        }
-    }
-
-    @Test
-    fun `marquee fit ignores width and shrinks for additional lines`() {
-        val oneLine = createDotMatrixBlockLayout("HELLO")
-        val threeLines = createDotMatrixBlockLayout("HELLO\nWORLD\nLEDGRAM")
-        val narrow = calculateFittingDotSize(oneLine, 1f, 100f, fitWidth = false)
-        val wide = calculateFittingDotSize(oneLine, 10_000f, 100f, fitWidth = false)
-        val multiline = calculateFittingDotSize(threeLines, 10_000f, 100f, fitWidth = false)
-
-        assertEquals(narrow, wide, 0f)
-        assertTrue(multiline < wide)
-    }
-
-    @Test
-    fun `marquee travel uses stable unscaled block width`() {
-        val layout = createDotMatrixBlockLayout(
-            "LONG LINE\nSHORT",
-            bold = true,
-            italic = true,
-            underline = true,
-        )
-        val dotSize = calculateFittingDotSize(layout, 0f, 200f, fitWidth = false)
-        val blockWidth = layout.widthUnits * dotSize
-        val rightToLeft = calculateMarqueeTravelBounds(1_000f, blockWidth, MotionEffect.RIGHT_TO_LEFT)
-        val leftToRight = calculateMarqueeTravelBounds(1_000f, blockWidth, MotionEffect.LEFT_TO_RIGHT)
-
-        assertEquals(1_000f, rightToLeft.startPx, 0f)
-        assertEquals(-blockWidth, rightToLeft.endPx, 0f)
-        assertEquals(-blockWidth, leftToRight.startPx, 0f)
-        assertEquals(1_000f, leftToRight.endPx, 0f)
-    }
 }
