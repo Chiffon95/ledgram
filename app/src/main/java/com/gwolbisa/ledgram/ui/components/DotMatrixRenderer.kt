@@ -55,23 +55,24 @@ internal fun DotMatrixRenderer(
         effectSpeedMultiplier = config.effectSpeedMultiplier,
     )
 
-    when (config.motionEffect) {
-        MotionEffect.STATIC -> StaticDotMatrixBlock(
+    val isMarquee = config.motionEffect != MotionEffect.STATIC
+    // Motion toggles visibility only; the deterministic glyph layout and progress stay alive.
+    Box(modifier = modifier) {
+        StaticDotMatrixBlock(
             config = config,
             layout = layout,
             visualTransform = visualTransform,
             horizontalPadding = staticHorizontalPadding,
-            modifier = modifier,
+            visible = !isMarquee,
+            modifier = Modifier.fillMaxSize(),
         )
-
-        MotionEffect.RIGHT_TO_LEFT,
-        MotionEffect.LEFT_TO_RIGHT,
-        -> MarqueeDotMatrixBlock(
+        MarqueeDotMatrixBlock(
             config = config,
             layout = layout,
             visualTransform = visualTransform,
             baseSpeedDpPerSecond = marqueeSpeedDpPerSecond,
-            modifier = modifier,
+            visible = isMarquee,
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
@@ -82,6 +83,7 @@ private fun StaticDotMatrixBlock(
     layout: DotMatrixBlockLayout,
     visualTransform: VisualTransform,
     horizontalPadding: Dp,
+    visible: Boolean,
     modifier: Modifier,
 ) {
     BoxWithConstraints(
@@ -104,7 +106,7 @@ private fun StaticDotMatrixBlock(
 
         Box(
             modifier = Modifier.graphicsLayer {
-                alpha = visualTransform.alpha
+                alpha = if (visible) visualTransform.alpha else 0f
                 scaleX = visualTransform.scale
                 scaleY = visualTransform.scale
                 transformOrigin = visualEffectTransformOrigin(config.motionEffect)
@@ -125,6 +127,7 @@ private fun MarqueeDotMatrixBlock(
     layout: DotMatrixBlockLayout,
     visualTransform: VisualTransform,
     baseSpeedDpPerSecond: Float,
+    visible: Boolean,
     modifier: Modifier,
 ) {
     BoxWithConstraints(
@@ -148,6 +151,7 @@ private fun MarqueeDotMatrixBlock(
         val translationX = rememberMarqueeTranslation(
             motionEffect = config.motionEffect,
             contentIdentity = config.message,
+            isRunning = visible,
             viewportWidthPx = viewportWidthPx,
             blockWidthPx = blockWidthPx,
             baseSpeedPxPerSecond = baseSpeedPxPerSecond,
@@ -161,7 +165,7 @@ private fun MarqueeDotMatrixBlock(
         ) {
             Box(
                 modifier = Modifier.graphicsLayer {
-                    alpha = if (measurementsReady) visualTransform.alpha else 0f
+                    alpha = if (visible && measurementsReady) visualTransform.alpha else 0f
                     scaleX = visualTransform.scale
                     scaleY = visualTransform.scale
                     transformOrigin = visualEffectTransformOrigin(config.motionEffect)

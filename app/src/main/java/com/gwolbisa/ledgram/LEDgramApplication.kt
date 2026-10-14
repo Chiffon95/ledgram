@@ -1,7 +1,6 @@
 package com.gwolbisa.ledgram
 
 import android.app.Application
-import androidx.appcompat.app.AppCompatDelegate
 import com.gwolbisa.ledgram.ads.AdsManager
 import com.gwolbisa.ledgram.ads.ConsentManager
 import com.gwolbisa.ledgram.data.MonetizationPreferencesRepository
@@ -26,8 +25,6 @@ class LEDgramApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Bootstrap AppCompat's locale bridge without changing a System-default selection.
-        AppCompatDelegate.getApplicationLocales()
         dotMatrixGlyphProvider = PixelFontGlyphProvider(this)
         applicationScope.launch(Dispatchers.Default) {
             dotMatrixGlyphProvider.prepare()

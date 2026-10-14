@@ -7,17 +7,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -51,20 +47,30 @@ internal data class MarqueeTravelBounds(
     val endPx: Float,
 )
 
+private data class MarqueeTextMeasurement(
+    val fontSizeSp: Float,
+    val widthPx: Int,
+)
+
 internal fun calculateMarqueeTravelBounds(
     viewportWidthPx: Float,
     unscaledTextWidthPx: Float,
     motionEffect: MotionEffect,
-): MarqueeTravelBounds = if (motionEffect == MotionEffect.RIGHT_TO_LEFT) {
-    MarqueeTravelBounds(
-        startPx = viewportWidthPx,
-        endPx = -unscaledTextWidthPx,
-    )
-} else {
-    MarqueeTravelBounds(
-        startPx = -unscaledTextWidthPx,
-        endPx = viewportWidthPx,
-    )
+): MarqueeTravelBounds {
+    val safeViewportWidth = viewportWidthPx.takeIf { it.isFinite() && it > 0f } ?: 0f
+    val safeTextWidth = unscaledTextWidthPx.takeIf { it.isFinite() && it > 0f } ?: 0f
+    val offscreenTextStart = if (safeTextWidth > 0f) -safeTextWidth else 0f
+    return if (motionEffect == MotionEffect.RIGHT_TO_LEFT) {
+        MarqueeTravelBounds(
+            startPx = safeViewportWidth,
+            endPx = offscreenTextStart,
+        )
+    } else {
+        MarqueeTravelBounds(
+            startPx = offscreenTextStart,
+            endPx = safeViewportWidth,
+        )
+    }
 }
 
 internal fun visualEffectTransformOrigin(motionEffect: MotionEffect): TransformOrigin =
@@ -99,8 +105,10 @@ internal fun TextGlowRenderer(
         // Preview and Display derive the same fitting ceiling from their own viewport.
         val maximumFontSize = with(density) { (maxHeight * 0.72f).toSp() }
 
-        when (config.motionEffect) {
-            MotionEffect.STATIC -> LedText(
+        val isMarquee = config.motionEffect != MotionEffect.STATIC
+        // Keep marquee fitting and progress alive while Static temporarily hides it.
+        Box(modifier = Modifier.fillMaxSize()) {
+            LedText(
                 text = config.message,
                 color = Color(config.textColor),
                 bold = config.bold,
@@ -110,21 +118,19 @@ internal fun TextGlowRenderer(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        alpha = visualTransform.alpha
+                        alpha = if (isMarquee) 0f else visualTransform.alpha
                         scaleX = visualTransform.scale
                         scaleY = visualTransform.scale
-                        transformOrigin = visualEffectTransformOrigin(config.motionEffect)
+                        transformOrigin = visualEffectTransformOrigin(MotionEffect.STATIC)
                     },
                 horizontalPadding = staticHorizontalPadding,
             )
-
-            MotionEffect.RIGHT_TO_LEFT,
-            MotionEffect.LEFT_TO_RIGHT,
-            -> MarqueeTextGlow(
+            MarqueeTextGlow(
                 config = config,
                 fontSize = maximumFontSize,
                 baseSpeedDpPerSecond = marqueeSpeedDpPerSecond,
                 visualTransform = visualTransform,
+                visible = isMarquee,
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -137,6 +143,7 @@ private fun MarqueeTextGlow(
     fontSize: TextUnit,
     baseSpeedDpPerSecond: Float,
     visualTransform: VisualTransform,
+    visible: Boolean,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(
@@ -153,34 +160,37 @@ private fun MarqueeTextGlow(
                 .coerceAtLeast(1)
         }
         val baseSpeedPxPerSecond = with(density) { baseSpeedDpPerSecond.dp.toPx() }
-        val fittedFontSize = remember(
+        val horizontalOverscanPx = with(density) { TextGlyphOverscan.roundToPx() * 2 }
+        val measurement = remember(
             config.message,
             fontSize,
             availableHeightPx,
             config.bold,
             config.italic,
             config.underline,
+            density.density,
             density.fontScale,
         ) {
             val expectedLineCount = splitExplicitTextLines(config.message).size
-            findLargestFittingFontSize(fontSize.value) { candidateSize ->
-                val result = textMeasurer.measure(
-                    text = AnnotatedString(config.message),
-                    style = ledTextStyle(
-                        color = Color(config.textColor),
-                        fontSize = candidateSize.sp,
-                        bold = config.bold,
-                        italic = config.italic,
-                        underline = config.underline,
-                    ),
-                    overflow = TextOverflow.Clip,
-                    softWrap = false,
-                    maxLines = Int.MAX_VALUE,
-                    constraints = Constraints(
-                        maxWidth = Constraints.Infinity,
-                        maxHeight = availableHeightPx,
-                    ),
-                )
+            fun measure(candidateSize: Float) = textMeasurer.measure(
+                text = AnnotatedString(config.message),
+                style = ledTextStyle(
+                    color = Color(config.textColor),
+                    fontSize = candidateSize.sp,
+                    bold = config.bold,
+                    italic = config.italic,
+                    underline = config.underline,
+                ),
+                overflow = TextOverflow.Clip,
+                softWrap = false,
+                maxLines = Int.MAX_VALUE,
+                constraints = Constraints(
+                    maxWidth = Constraints.Infinity,
+                    maxHeight = availableHeightPx,
+                ),
+            )
+            val fittedFontSize = findLargestFittingFontSize(fontSize.value) { candidateSize ->
+                val result = measure(candidateSize)
                 isCompleteMarqueeTextLayout(
                     textLength = config.message.length,
                     expectedLineCount = expectedLineCount,
@@ -193,14 +203,19 @@ private fun MarqueeTextGlow(
                     didOverflowHeight = result.didOverflowHeight,
                 )
             }
+            MarqueeTextMeasurement(
+                fontSizeSp = fittedFontSize,
+                widthPx = (measure(fittedFontSize).size.width + horizontalOverscanPx)
+                    .coerceAtLeast(1),
+            )
         }
-        var textWidthPx by remember { mutableIntStateOf(0) }
-        val measurementsReady = viewportWidthPx > 0f && textWidthPx > 0
+        val measurementsReady = viewportWidthPx > 0f && measurement.widthPx > 0
         val translationX = rememberMarqueeTranslation(
             motionEffect = config.motionEffect,
             contentIdentity = config.message,
+            isRunning = visible,
             viewportWidthPx = viewportWidthPx,
-            blockWidthPx = textWidthPx.toFloat(),
+            blockWidthPx = measurement.widthPx.toFloat(),
             baseSpeedPxPerSecond = baseSpeedPxPerSecond,
             motionSpeedMultiplier = config.motionSpeedMultiplier,
         )
@@ -214,7 +229,7 @@ private fun MarqueeTextGlow(
         ) {
             Box(
                 modifier = Modifier.graphicsLayer {
-                    alpha = if (measurementsReady) visualTransform.alpha else 0f
+                    alpha = if (visible && measurementsReady) visualTransform.alpha else 0f
                     scaleX = visualTransform.scale
                     scaleY = visualTransform.scale
                     transformOrigin = visualEffectTransformOrigin(config.motionEffect)
@@ -222,16 +237,14 @@ private fun MarqueeTextGlow(
             ) {
                 Text(
                     text = config.message,
-                    modifier = Modifier
-                        .onSizeChanged { textWidthPx = it.width }
-                        .padding(horizontal = TextGlyphOverscan),
+                    modifier = Modifier.padding(horizontal = TextGlyphOverscan),
                     textAlign = TextAlign.Center,
                     maxLines = Int.MAX_VALUE,
                     softWrap = false,
                     overflow = TextOverflow.Clip,
                     style = ledTextStyle(
                         color = Color(config.textColor),
-                        fontSize = fittedFontSize.sp,
+                        fontSize = measurement.fontSizeSp.sp,
                         bold = config.bold,
                         italic = config.italic,
                         underline = config.underline,

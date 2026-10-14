@@ -13,7 +13,7 @@
 
 - 개발자: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
-- Version: `0.9.5` (`versionCode 14`)
+- Version: `0.9.6` (`versionCode 15`)
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
 

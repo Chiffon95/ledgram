@@ -6,10 +6,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import com.gwolbisa.ledgram.model.MotionEffect
 import com.gwolbisa.ledgram.util.scaledMarqueeSpeed
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.isActive
 
 internal fun wrapMarqueeProgress(progress: Double): Double {
@@ -23,8 +27,9 @@ internal fun advanceMarqueeProgress(
     deltaSeconds: Double,
     speedPxPerSecond: Float,
     travelDistancePx: Float,
+    isRunning: Boolean = true,
 ): Double {
-    if (!deltaSeconds.isFinite() || deltaSeconds <= 0.0 ||
+    if (!isRunning || !deltaSeconds.isFinite() || deltaSeconds <= 0.0 ||
         !speedPxPerSecond.isFinite() || speedPxPerSecond <= 0f ||
         !travelDistancePx.isFinite() || travelDistancePx <= 0f
     ) {
@@ -47,12 +52,14 @@ internal fun marqueeTranslationForProgress(
 internal fun rememberMarqueeTranslation(
     motionEffect: MotionEffect,
     contentIdentity: Any,
+    isRunning: Boolean,
     viewportWidthPx: Float,
     blockWidthPx: Float,
     baseSpeedPxPerSecond: Float,
     motionSpeedMultiplier: Float,
 ): Float {
-    var progress by remember(motionEffect, contentIdentity) { mutableDoubleStateOf(0.0) }
+    var progress by remember(contentIdentity) { mutableDoubleStateOf(0.0) }
+    val currentIsRunning by rememberUpdatedState(isRunning)
     val currentTravelDistancePx by rememberUpdatedState(
         if (viewportWidthPx > 0f && blockWidthPx > 0f) {
             viewportWidthPx + blockWidthPx
@@ -64,20 +71,27 @@ internal fun rememberMarqueeTranslation(
         scaledMarqueeSpeed(baseSpeedPxPerSecond, motionSpeedMultiplier),
     )
 
-    LaunchedEffect(motionEffect, contentIdentity) {
-        var previousFrameNanos = withFrameNanos { it }
-        while (isActive) {
-            withFrameNanos { currentFrameNanos ->
-                val deltaSeconds = (currentFrameNanos - previousFrameNanos) / 1_000_000_000.0
-                previousFrameNanos = currentFrameNanos
-                progress = advanceMarqueeProgress(
-                    progress = progress,
-                    deltaSeconds = deltaSeconds,
-                    speedPxPerSecond = currentSpeedPxPerSecond,
-                    travelDistancePx = currentTravelDistancePx,
-                )
+    LaunchedEffect(contentIdentity) {
+        snapshotFlow { currentIsRunning }
+            .distinctUntilChanged()
+            .collectLatest { running ->
+                if (!running) return@collectLatest
+                var previousFrameNanos = withFrameNanos { it }
+                while (currentCoroutineContext().isActive) {
+                    withFrameNanos { currentFrameNanos ->
+                        val deltaSeconds =
+                            (currentFrameNanos - previousFrameNanos) / 1_000_000_000.0
+                        previousFrameNanos = currentFrameNanos
+                        progress = advanceMarqueeProgress(
+                            progress = progress,
+                            deltaSeconds = deltaSeconds,
+                            speedPxPerSecond = currentSpeedPxPerSecond,
+                            travelDistancePx = currentTravelDistancePx,
+                            isRunning = true,
+                        )
+                    }
+                }
             }
-        }
     }
 
     val bounds = calculateMarqueeTravelBounds(

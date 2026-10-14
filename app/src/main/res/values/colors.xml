@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ledgram_black">#080806</color>
+    <color name="ledgram_surface">#151411</color>
     <color name="ledgram_amber">#FFB547</color>
 </resources>
 

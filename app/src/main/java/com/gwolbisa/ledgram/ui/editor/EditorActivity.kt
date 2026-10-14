@@ -9,7 +9,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -60,8 +59,6 @@ class EditorActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        // Once an AppCompat delegate has an Activity context, initialize the API 33+ bridge too.
-        AppCompatDelegate.getApplicationLocales()
         val previewPlaceholder = getString(R.string.message_placeholder)
         lifecycleScope.launch(Dispatchers.Default) {
             try {

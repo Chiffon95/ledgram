@@ -28,6 +28,43 @@ class MarqueeTimingTest {
         assertEquals(0.4, advanceMarqueeProgress(0.4, 1.0, 0f, 1_000f), 0.0)
         assertEquals(0.4, advanceMarqueeProgress(0.4, 1.0, 100f, 0f), 0.0)
         assertEquals(0.4, advanceMarqueeProgress(0.4, 0.0, 100f, 1_000f), 0.0)
+        assertEquals(0.4, advanceMarqueeProgress(0.4, 1.0, 100f, Float.NaN), 0.0)
+    }
+
+    @Test
+    fun `pause preserves progress and does not advance`() {
+        assertEquals(
+            0.4,
+            advanceMarqueeProgress(
+                progress = 0.4,
+                deltaSeconds = 10.0,
+                speedPxPerSecond = 100f,
+                travelDistancePx = 1_000f,
+                isRunning = false,
+            ),
+            0.0,
+        )
+    }
+
+    @Test
+    fun `resume continues from paused progress without resetting`() {
+        val paused = advanceMarqueeProgress(
+            progress = 0.4,
+            deltaSeconds = 10.0,
+            speedPxPerSecond = 100f,
+            travelDistancePx = 1_000f,
+            isRunning = false,
+        )
+        val resumed = advanceMarqueeProgress(
+            progress = paused,
+            deltaSeconds = 1.0,
+            speedPxPerSecond = 100f,
+            travelDistancePx = 1_000f,
+            isRunning = true,
+        )
+
+        assertEquals(0.4, paused, 0.0)
+        assertEquals(0.5, resumed, 0.000001)
     }
 
     @Test
@@ -122,6 +159,42 @@ class MarqueeTimingTest {
         assertEquals(360f, originalPosition, 0.001f)
         assertEquals(280f, widerPosition, 0.001f)
         assertTrue(widerPosition != widerBounds.startPx)
+    }
+
+    @Test
+    fun `direction change maps the same normalized progress into valid bounds`() {
+        val progress = 0.4
+        val rightToLeft = calculateMarqueeTravelBounds(
+            1_000f,
+            600f,
+            MotionEffect.RIGHT_TO_LEFT,
+        )
+        val leftToRight = calculateMarqueeTravelBounds(
+            1_000f,
+            600f,
+            MotionEffect.LEFT_TO_RIGHT,
+        )
+
+        val rightToLeftPosition = marqueeTranslationForProgress(rightToLeft, progress)
+        val leftToRightPosition = marqueeTranslationForProgress(leftToRight, progress)
+
+        assertEquals(360f, rightToLeftPosition, 0.001f)
+        assertEquals(40f, leftToRightPosition, 0.001f)
+        assertTrue(rightToLeftPosition.isFinite())
+        assertTrue(leftToRightPosition.isFinite())
+    }
+
+    @Test
+    fun `invalid travel dimensions produce finite zero bounds`() {
+        val bounds = calculateMarqueeTravelBounds(
+            viewportWidthPx = Float.NaN,
+            unscaledTextWidthPx = Float.POSITIVE_INFINITY,
+            motionEffect = MotionEffect.RIGHT_TO_LEFT,
+        )
+
+        assertEquals(0f, bounds.startPx)
+        assertEquals(0f, bounds.endPx)
+        assertEquals(0f, marqueeTranslationForProgress(bounds, 0.4), 0f)
     }
 
     @Test

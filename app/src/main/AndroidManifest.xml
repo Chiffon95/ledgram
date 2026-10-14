@@ -34,7 +34,7 @@
             android:name=".ui.settings.SettingsActivity"
             android:configChanges="locale|layoutDirection"
             android:exported="false"
-            android:theme="@style/Theme.LEDgram" />
+            android:theme="@style/Theme.LEDgram.Settings" />
 
         <activity
             android:name=".ui.settings.PrivacyPolicyActivity"

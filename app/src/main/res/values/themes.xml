@@ -10,6 +10,13 @@
         <item name="android:windowLightStatusBar">false</item>
     </style>
 
+    <!-- Matches the Compose Settings surface if AppCompat exposes a transition frame. -->
+    <style name="Theme.LEDgram.Settings" parent="Theme.LEDgram">
+        <item name="android:windowBackground">@color/ledgram_surface</item>
+        <item name="android:navigationBarColor">@color/ledgram_surface</item>
+        <item name="android:statusBarColor">@color/ledgram_surface</item>
+    </style>
+
     <style name="Theme.LEDgram.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/ledgram_black</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
