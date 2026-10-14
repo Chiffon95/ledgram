@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -35,7 +36,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -334,7 +334,6 @@ private fun SpeedSelector(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EditorTopArea(
     config: DisplayConfig,
@@ -344,39 +343,29 @@ private fun EditorTopArea(
         color = MaterialTheme.colorScheme.background,
         shadowElevation = 4.dp,
     ) {
-        Column {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.editor_title),
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Text(
-                            text = stringResource(R.string.editor_subtitle),
-                            color = LedMuted,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                },
-                actions = {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .widthIn(max = EditorContentMaxWidth)
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 20.dp, bottom = 14.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    SectionLabel(stringResource(R.string.preview_label))
                     IconButton(onClick = onOpenSettings) {
                         Icon(
                             painter = painterResource(R.drawable.ic_settings),
                             contentDescription = stringResource(R.string.settings),
                         )
                     }
-                },
-            )
-            Column(
-                modifier = Modifier
-                    .widthIn(max = EditorContentMaxWidth)
-                    .fillMaxWidth()
-                    .align(Alignment.CenterHorizontally)
-                    .padding(start = 20.dp, end = 20.dp, bottom = 14.dp),
-            ) {
-                SectionLabel(stringResource(R.string.preview_label))
-                Spacer(Modifier.height(8.dp))
+                }
+                Spacer(Modifier.height(4.dp))
                 LedPreview(
                     config = config,
                     modifier = Modifier.height(EditorPreviewHeight),

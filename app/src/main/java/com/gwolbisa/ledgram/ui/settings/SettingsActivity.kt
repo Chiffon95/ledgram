@@ -10,8 +10,6 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gwolbisa.ledgram.LEDgramApplication
@@ -24,6 +22,7 @@ class SettingsActivity : AppCompatActivity() {
     private val ledgramApplication: LEDgramApplication
         get() = application as LEDgramApplication
     private val editorPreferencesRepository by lazy { EditorPreferencesRepository(this) }
+    private val appLocaleController by lazy { AppLocaleController(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,9 +36,7 @@ class SettingsActivity : AppCompatActivity() {
                     .collectAsStateWithLifecycle()
                 SettingsScreen(
                     versionName = loadVersionName(),
-                    selectedLanguage = AppLanguage.fromLanguageTags(
-                        AppCompatDelegate.getApplicationLocales().toLanguageTags(),
-                    ),
+                    selectedLanguage = appLocaleController.currentLanguage(),
                     showPrivacyOptions = privacyOptionsRequired,
                     onPrivacyOptions = {
                         ledgramApplication.consentManager.showPrivacyOptionsForm(this)
@@ -86,9 +83,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun applyLanguage(language: AppLanguage) {
-        AppCompatDelegate.setApplicationLocales(
-            LocaleListCompat.forLanguageTags(language.languageTag),
-        )
+        appLocaleController.applyLanguage(language)
     }
 
     private suspend fun resetEditorSettings(): Boolean = try {

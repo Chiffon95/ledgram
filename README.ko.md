@@ -13,7 +13,7 @@
 
 - 개발자: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
-- Version: `0.9.0` (`versionCode 9`)
+- Version: `0.9.1` (`versionCode 10`)
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
 
@@ -56,6 +56,7 @@
   - 부드러운 점멸
 - Motion Speed / Effect Speed: `0.25x ~ 5.0x`
 - Live Preview
+- 전체 Editor 앱 바 없이 Settings로 이동할 수 있는 compact Preview header
 
 빈 문구는 Preview에서만 `Hello!` 표시. 저장값이나 Display에는 들어가지 않음.
 
@@ -66,7 +67,8 @@
 - 상태바 / 내비게이션바 숨김
 - window 밝기 최대
 - keep screen on
-- 탭하면 Exit UI 표시
+- 탭하면 icon-only control 표시
+- session lock 중에는 Exit를 숨기고 잠금 해제 전까지 Back 차단
 - Display에는 광고 없음
 
 ## 여러 줄

@@ -46,8 +46,9 @@ class EditorActivity : AppCompatActivity() {
         get() = application as LEDgramApplication
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        splashScreen.setKeepOnScreenCondition { editorViewModel.uiState.value == null }
         applyEditorOrientationPolicy()
         enableEdgeToEdge()
         ledgramApplication.consentManager.requestConsentInfoUpdate(this)

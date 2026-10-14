@@ -13,7 +13,7 @@ Android LED signboard app for concerts, cheering, events, and quick fullscreen m
 
 - Developer: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
-- Version: `0.9.0` (`versionCode 9`)
+- Version: `0.9.1` (`versionCode 10`)
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
 
@@ -56,6 +56,7 @@ Core features are mostly done. The project is in release-prep.
   - Fade
 - Motion Speed / Effect Speed: `0.25x ~ 5.0x`
 - Live Preview
+- compact Preview header with Settings access; no full Editor app bar
 
 When the message is empty, `Hello!` is shown in Preview only. It is not persisted or sent to Display.
 
@@ -66,7 +67,8 @@ When the message is empty, `Hello!` is shown in Preview only. It is not persiste
 - status/navigation bars hidden
 - maximum window brightness
 - keep screen on
-- tap to show Exit UI
+- tap to show icon-only controls
+- session lock hides Exit and consumes Back until unlocked
 - no ads in Display
 
 ## Multiline
