@@ -1,10 +1,5 @@
 package com.gwolbisa.ledgram.ui.components
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -12,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +19,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.model.MotionEffect
-import com.gwolbisa.ledgram.util.scaledMarqueeSpeed
 
 private val DotMatrixVerticalSafetyPadding = 16.dp
 
@@ -39,7 +31,14 @@ internal fun DotMatrixRenderer(
 ) {
     if (config.message.isEmpty()) return
 
-    val layout = remember(config.message) { createDotMatrixBlockLayout(config.message) }
+    val layout = remember(config.message, config.bold, config.italic, config.underline) {
+        createDotMatrixBlockLayout(
+            message = config.message,
+            bold = config.bold,
+            italic = config.italic,
+            underline = config.underline,
+        )
+    }
     val visualTransform = rememberVisualTransform(
         effect = config.visualEffect,
         effectSpeedMultiplier = config.effectSpeedMultiplier,
@@ -60,10 +59,7 @@ internal fun DotMatrixRenderer(
             config = config,
             layout = layout,
             visualTransform = visualTransform,
-            speedDpPerSecond = scaledMarqueeSpeed(
-                marqueeSpeedDpPerSecond,
-                config.motionSpeedMultiplier,
-            ),
+            baseSpeedDpPerSecond = marqueeSpeedDpPerSecond,
             modifier = modifier,
         )
     }
@@ -117,7 +113,7 @@ private fun MarqueeDotMatrixBlock(
     config: DisplayConfig,
     layout: DotMatrixBlockLayout,
     visualTransform: VisualTransform,
-    speedDpPerSecond: Float,
+    baseSpeedDpPerSecond: Float,
     modifier: Modifier,
 ) {
     BoxWithConstraints(
@@ -136,39 +132,16 @@ private fun MarqueeDotMatrixBlock(
             fitWidth = false,
         )
         val blockWidthPx = layout.widthUnits * dotSizePx
-        val speedPxPerSecond = with(density) { speedDpPerSecond.dp.toPx() }
+        val baseSpeedPxPerSecond = with(density) { baseSpeedDpPerSecond.dp.toPx() }
         val measurementsReady = viewportWidthPx > 0f && blockWidthPx > 0f
-        val translationX = if (measurementsReady) {
-            key(
-                viewportWidthPx,
-                blockWidthPx,
-                config.message,
-                config.motionEffect,
-                speedPxPerSecond,
-            ) {
-                val bounds = calculateMarqueeTravelBounds(
-                    viewportWidthPx = viewportWidthPx,
-                    unscaledTextWidthPx = blockWidthPx,
-                    motionEffect = config.motionEffect,
-                )
-                val durationMillis = calculateMarqueeDurationMillis(
-                    travelDistancePx = viewportWidthPx + blockWidthPx,
-                    speedPxPerSecond = speedPxPerSecond,
-                )
-                val transition = rememberInfiniteTransition(label = "marqueeDotMatrix")
-                val offset by transition.animateFloat(
-                    initialValue = bounds.startPx,
-                    targetValue = bounds.endPx,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(durationMillis = durationMillis, easing = LinearEasing),
-                    ),
-                    label = "dotMatrixTranslationX",
-                )
-                offset
-            }
-        } else {
-            0f
-        }
+        val translationX = rememberMarqueeTranslation(
+            motionEffect = config.motionEffect,
+            contentIdentity = config.message,
+            viewportWidthPx = viewportWidthPx,
+            blockWidthPx = blockWidthPx,
+            baseSpeedPxPerSecond = baseSpeedPxPerSecond,
+            motionSpeedMultiplier = config.motionSpeedMultiplier,
+        )
 
         Box(
             modifier = Modifier
@@ -208,28 +181,46 @@ private fun DotMatrixCanvas(
     Canvas(modifier = Modifier.requiredSize(widthDp, heightDp)) {
         val dotGapPx = dotSizePx * DOT_MATRIX_DOT_GAP_RATIO
         val pitchPx = dotSizePx + dotGapPx
-        val glyphWidthPx = DOT_MATRIX_GLYPH_WIDTH * dotSizePx +
-            (DOT_MATRIX_GLYPH_WIDTH - 1) * dotGapPx
-        val glyphHeightPx = DOT_MATRIX_GLYPH_HEIGHT * dotSizePx +
-            (DOT_MATRIX_GLYPH_HEIGHT - 1) * dotGapPx
+        val glyphWidthPx = DOT_MATRIX_GLYPH_WIDTH_UNITS * dotSizePx
+        val glyphHeightPx = DOT_MATRIX_GLYPH_HEIGHT_UNITS * dotSizePx
         val characterGapPx = dotSizePx * DOT_MATRIX_CHARACTER_GAP_RATIO
         val lineGapPx = dotSizePx * DOT_MATRIX_LINE_GAP_RATIO
+        val boldOffsetPx = layout.styleGeometry.boldExtraWidthUnits * dotSizePx
+        val italicOverscanPx = layout.styleGeometry.italicExtraWidthUnits * dotSizePx
+        val underlineSpacingPx = DOT_MATRIX_UNDERLINE_SPACING_RATIO * dotSizePx
         val radius = dotSizePx / 2f
 
+        fun drawStyledDot(center: Offset) {
+            drawCircle(color = color, radius = radius, center = center)
+            if (layout.bold) {
+                drawCircle(
+                    color = color,
+                    radius = radius,
+                    center = center.copy(x = center.x + boldOffsetPx),
+                )
+            }
+        }
+
+        var lineStartY = 0f
         layout.lines.forEachIndexed { lineIndex, line ->
             val lineWidthPx = line.widthUnits * dotSizePx
             val lineStartX = (widthPx - lineWidthPx) / 2f
-            val lineStartY = lineIndex * (glyphHeightPx + lineGapPx)
             line.glyphs.forEachIndexed { glyphIndex, glyph ->
                 val glyphStartX = lineStartX + glyphIndex * (glyphWidthPx + characterGapPx)
                 for (row in 0 until DOT_MATRIX_GLYPH_HEIGHT) {
+                    val italicOffsetPx = if (layout.italic) {
+                        italicOverscanPx *
+                            (DOT_MATRIX_GLYPH_HEIGHT - 1 - row) /
+                            (DOT_MATRIX_GLYPH_HEIGHT - 1)
+                    } else {
+                        0f
+                    }
                     for (column in 0 until DOT_MATRIX_GLYPH_WIDTH) {
                         if (glyph.isActive(row, column)) {
-                            drawCircle(
-                                color = color,
-                                radius = radius,
-                                center = Offset(
-                                    x = glyphStartX + column * pitchPx + radius,
+                            drawStyledDot(
+                                Offset(
+                                    x = glyphStartX + column * pitchPx + radius +
+                                        italicOffsetPx,
                                     y = lineStartY + row * pitchPx + radius,
                                 ),
                             )
@@ -237,6 +228,19 @@ private fun DotMatrixCanvas(
                     }
                 }
             }
+
+            if (line.underlined) {
+                val underlineY = lineStartY + glyphHeightPx + underlineSpacingPx + radius
+                val finalCenterX = lineStartX + lineWidthPx - radius - boldOffsetPx
+                var underlineX = lineStartX + radius
+                while (underlineX <= finalCenterX + 0.001f) {
+                    drawStyledDot(Offset(underlineX, underlineY))
+                    underlineX += pitchPx
+                }
+            }
+
+            lineStartY += line.heightUnits * dotSizePx
+            if (lineIndex < layout.lines.lastIndex) lineStartY += lineGapPx
         }
     }
 }

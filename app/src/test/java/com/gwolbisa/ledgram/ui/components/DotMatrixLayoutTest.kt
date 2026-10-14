@@ -26,11 +26,73 @@ class DotMatrixLayoutTest {
 
     @Test
     fun `supplementary unicode uses one fallback glyph`() {
-        val emoji = createDotMatrixBlockLayout("😀")
-        val fallback = createDotMatrixBlockLayout("?")
+        val emoji = createDotMatrixBlockLayout("😀", bold = true, italic = true)
+        val fallback = createDotMatrixBlockLayout("?", bold = true, italic = true)
 
         assertEquals(fallback.widthUnits, emoji.widthUnits, 0f)
         assertEquals(1, emoji.lines.single().glyphs.size)
+    }
+
+    @Test
+    fun `bold and italic add explicit horizontal geometry`() {
+        val normal = createDotMatrixBlockLayout("LEDGRAM")
+        val bold = createDotMatrixBlockLayout("LEDGRAM", bold = true)
+        val italic = createDotMatrixBlockLayout("LEDGRAM", italic = true)
+        val combined = createDotMatrixBlockLayout("LEDGRAM", bold = true, italic = true)
+
+        assertEquals(
+            normal.widthUnits + DOT_MATRIX_BOLD_OFFSET_RATIO,
+            bold.widthUnits,
+            0.0001f,
+        )
+        assertEquals(
+            normal.widthUnits + DOT_MATRIX_ITALIC_OVERSCAN_RATIO,
+            italic.widthUnits,
+            0.0001f,
+        )
+        assertEquals(
+            normal.widthUnits + DOT_MATRIX_BOLD_OFFSET_RATIO +
+                DOT_MATRIX_ITALIC_OVERSCAN_RATIO,
+            combined.widthUnits,
+            0.0001f,
+        )
+    }
+
+    @Test
+    fun `underline increases non-empty line height and combines with other styles`() {
+        val normal = createDotMatrixBlockLayout("A")
+        val underline = createDotMatrixBlockLayout("A", underline = true)
+        val allStyles = createDotMatrixBlockLayout(
+            "A",
+            bold = true,
+            italic = true,
+            underline = true,
+        )
+
+        assertEquals(
+            normal.heightUnits + DOT_MATRIX_UNDERLINE_SPACING_RATIO +
+                DOT_MATRIX_UNDERLINE_HEIGHT_RATIO,
+            underline.heightUnits,
+            0.0001f,
+        )
+        assertTrue(allStyles.widthUnits > normal.widthUnits)
+        assertEquals(underline.heightUnits, allStyles.heightUnits, 0.0001f)
+    }
+
+    @Test
+    fun `multiline underline skips empty lines and widest styled line controls width`() {
+        val layout = createDotMatrixBlockLayout(
+            "HELLO\n\nWORLDWIDE",
+            bold = true,
+            italic = true,
+            underline = true,
+        )
+
+        assertTrue(layout.lines[0].underlined)
+        assertTrue(!layout.lines[1].underlined)
+        assertTrue(layout.lines[2].underlined)
+        assertEquals(layout.lines[2].widthUnits, layout.widthUnits, 0.0001f)
+        assertEquals(32.6f, layout.heightUnits, 0.0001f)
     }
 
     @Test
@@ -40,6 +102,22 @@ class DotMatrixLayoutTest {
         val large = calculateFittingDotSize(layout, 400f, 200f, fitWidth = true)
 
         assertEquals(small * 2f, large, 0.0001f)
+    }
+
+    @Test
+    fun `static fitting accounts for combined styled bounds`() {
+        val normal = createDotMatrixBlockLayout("HELLO\nWORLD")
+        val styled = createDotMatrixBlockLayout(
+            "HELLO\nWORLD",
+            bold = true,
+            italic = true,
+            underline = true,
+        )
+
+        val normalDotSize = calculateFittingDotSize(normal, 200f, 100f, fitWidth = true)
+        val styledDotSize = calculateFittingDotSize(styled, 200f, 100f, fitWidth = true)
+
+        assertTrue(styledDotSize < normalDotSize)
     }
 
     @Test
@@ -56,7 +134,12 @@ class DotMatrixLayoutTest {
 
     @Test
     fun `marquee travel uses stable unscaled block width`() {
-        val layout = createDotMatrixBlockLayout("LONG LINE\nSHORT")
+        val layout = createDotMatrixBlockLayout(
+            "LONG LINE\nSHORT",
+            bold = true,
+            italic = true,
+            underline = true,
+        )
         val dotSize = calculateFittingDotSize(layout, 0f, 200f, fitWidth = false)
         val blockWidth = layout.widthUnits * dotSize
         val rightToLeft = calculateMarqueeTravelBounds(1_000f, blockWidth, MotionEffect.RIGHT_TO_LEFT)

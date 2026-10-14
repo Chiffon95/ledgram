@@ -1,10 +1,5 @@
 package com.gwolbisa.ledgram.ui.components
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +8,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,7 +31,6 @@ import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.model.MotionEffect
-import com.gwolbisa.ledgram.util.scaledMarqueeSpeed
 import kotlin.math.roundToInt
 
 internal object TextGlowEffectDefaults {
@@ -50,27 +43,9 @@ internal object TextGlowEffectDefaults {
     const val PULSE_MIN_SCALE = 0.94f
     const val DISPLAY_MARQUEE_SPEED_DP_PER_SECOND = 90f
     const val PREVIEW_MARQUEE_SPEED_DP_PER_SECOND = 55f
-    const val MIN_MARQUEE_DURATION_MILLIS = 1_000
 }
 
 private val MarqueeVerticalSafetyPadding = 16.dp
-
-internal fun calculateMarqueeDurationMillis(
-    travelDistancePx: Float,
-    speedPxPerSecond: Float,
-): Int {
-    if (!travelDistancePx.isFinite() || travelDistancePx <= 0f ||
-        !speedPxPerSecond.isFinite() || speedPxPerSecond <= 0f
-    ) {
-        return TextGlowEffectDefaults.MIN_MARQUEE_DURATION_MILLIS
-    }
-
-    val duration = travelDistancePx / speedPxPerSecond * 1_000f
-    return duration
-        .coerceAtMost(Int.MAX_VALUE.toFloat())
-        .roundToInt()
-        .coerceAtLeast(TextGlowEffectDefaults.MIN_MARQUEE_DURATION_MILLIS)
-}
 
 internal data class MarqueeTravelBounds(
     val startPx: Float,
@@ -154,10 +129,7 @@ internal fun TextGlowRenderer(
             -> MarqueeTextGlow(
                 config = config,
                 fontSize = effectiveMaximumFontSize,
-                speedDpPerSecond = scaledMarqueeSpeed(
-                    marqueeSpeedDpPerSecond,
-                    config.motionSpeedMultiplier,
-                ),
+                baseSpeedDpPerSecond = marqueeSpeedDpPerSecond,
                 visualTransform = visualTransform,
                 modifier = Modifier.fillMaxSize(),
             )
@@ -169,7 +141,7 @@ internal fun TextGlowRenderer(
 private fun MarqueeTextGlow(
     config: DisplayConfig,
     fontSize: TextUnit,
-    speedDpPerSecond: Float,
+    baseSpeedDpPerSecond: Float,
     visualTransform: VisualTransform,
     modifier: Modifier = Modifier,
 ) {
@@ -186,7 +158,7 @@ private fun MarqueeTextGlow(
                 .roundToInt()
                 .coerceAtLeast(1)
         }
-        val speedPxPerSecond = with(density) { speedDpPerSecond.dp.toPx() }
+        val baseSpeedPxPerSecond = with(density) { baseSpeedDpPerSecond.dp.toPx() }
         val fittedFontSize = remember(
             config.message,
             fontSize,
@@ -228,41 +200,14 @@ private fun MarqueeTextGlow(
         }
         var textWidthPx by remember { mutableIntStateOf(0) }
         val measurementsReady = viewportWidthPx > 0f && textWidthPx > 0
-        val translationX = if (measurementsReady) {
-            key(
-                viewportWidthPx,
-                textWidthPx,
-                config.message,
-                config.bold,
-                config.italic,
-                config.underline,
-                config.motionEffect,
-                speedPxPerSecond,
-            ) {
-                val textWidth = textWidthPx.toFloat()
-                val durationMillis = calculateMarqueeDurationMillis(
-                    travelDistancePx = viewportWidthPx + textWidth,
-                    speedPxPerSecond = speedPxPerSecond,
-                )
-                val travelBounds = calculateMarqueeTravelBounds(
-                    viewportWidthPx = viewportWidthPx,
-                    unscaledTextWidthPx = textWidth,
-                    motionEffect = config.motionEffect,
-                )
-                val transition = rememberInfiniteTransition(label = "marqueeTextGlow")
-                val offset by transition.animateFloat(
-                    initialValue = travelBounds.startPx,
-                    targetValue = travelBounds.endPx,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(durationMillis = durationMillis, easing = LinearEasing),
-                    ),
-                    label = "marqueeTranslationX",
-                )
-                offset
-            }
-        } else {
-            0f
-        }
+        val translationX = rememberMarqueeTranslation(
+            motionEffect = config.motionEffect,
+            contentIdentity = config.message,
+            viewportWidthPx = viewportWidthPx,
+            blockWidthPx = textWidthPx.toFloat(),
+            baseSpeedPxPerSecond = baseSpeedPxPerSecond,
+            motionSpeedMultiplier = config.motionSpeedMultiplier,
+        )
 
         Box(
             modifier = Modifier

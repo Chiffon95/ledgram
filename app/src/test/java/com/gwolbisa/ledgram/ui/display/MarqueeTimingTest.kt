@@ -1,47 +1,65 @@
 package com.gwolbisa.ledgram.ui.display
 
 import com.gwolbisa.ledgram.model.MotionEffect
-import com.gwolbisa.ledgram.ui.components.TextGlowEffectDefaults
-import com.gwolbisa.ledgram.ui.components.calculateMarqueeDurationMillis
+import com.gwolbisa.ledgram.ui.components.advanceMarqueeProgress
 import com.gwolbisa.ledgram.ui.components.calculateMarqueeTravelBounds
+import com.gwolbisa.ledgram.ui.components.marqueeTranslationForProgress
 import com.gwolbisa.ledgram.ui.components.visualEffectTransformOrigin
+import com.gwolbisa.ledgram.ui.components.wrapMarqueeProgress
+import com.gwolbisa.ledgram.util.scaledMarqueeSpeed
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MarqueeTimingTest {
     @Test
-    fun `larger travel distance produces longer duration`() {
-        val shortDuration = calculateMarqueeDurationMillis(
-            travelDistancePx = 1_000f,
-            speedPxPerSecond = 200f,
-        )
-        val longDuration = calculateMarqueeDurationMillis(
-            travelDistancePx = 2_000f,
-            speedPxPerSecond = 200f,
-        )
-
-        assertTrue(longDuration > shortDuration)
-    }
-
-    @Test
-    fun `zero distance and invalid speed use minimum duration`() {
+    fun `progress wraps naturally after a complete travel`() {
+        assertEquals(0.25, wrapMarqueeProgress(1.25), 0.000001)
+        assertEquals(0.75, wrapMarqueeProgress(-0.25), 0.000001)
         assertEquals(
-            TextGlowEffectDefaults.MIN_MARQUEE_DURATION_MILLIS,
-            calculateMarqueeDurationMillis(0f, 200f),
-        )
-        assertEquals(
-            TextGlowEffectDefaults.MIN_MARQUEE_DURATION_MILLIS,
-            calculateMarqueeDurationMillis(1_000f, 0f),
+            0.05,
+            advanceMarqueeProgress(0.95, 1.0, 100f, 1_000f),
+            0.000001,
         )
     }
 
     @Test
-    fun `duration never drops below minimum`() {
+    fun `invalid geometry or speed preserves current progress`() {
+        assertEquals(0.4, advanceMarqueeProgress(0.4, 1.0, 0f, 1_000f), 0.0)
+        assertEquals(0.4, advanceMarqueeProgress(0.4, 1.0, 100f, 0f), 0.0)
+        assertEquals(0.4, advanceMarqueeProgress(0.4, 0.0, 100f, 1_000f), 0.0)
+    }
+
+    @Test
+    fun `speed changes increment rate without replacing current progress`() {
+        val currentProgress = 0.4
+        val slow = advanceMarqueeProgress(currentProgress, 1.0, 25f, 1_000f)
+        val normal = advanceMarqueeProgress(currentProgress, 1.0, 100f, 1_000f)
+        val fast = advanceMarqueeProgress(currentProgress, 1.0, 500f, 1_000f)
+
+        assertEquals(0.425, slow, 0.000001)
+        assertEquals(0.5, normal, 0.000001)
+        assertEquals(0.9, fast, 0.000001)
         assertEquals(
-            TextGlowEffectDefaults.MIN_MARQUEE_DURATION_MILLIS,
-            calculateMarqueeDurationMillis(1f, 10_000f),
+            currentProgress,
+            advanceMarqueeProgress(currentProgress, 0.0, 500f, 1_000f),
+            0.0,
         )
+    }
+
+    @Test
+    fun `repeated multiplier changes continue from accumulated progress`() {
+        var progress = 0.4
+        listOf(0.25f, 5f, 0.5f, 3f).forEach { multiplier ->
+            progress = advanceMarqueeProgress(
+                progress = progress,
+                deltaSeconds = 0.1,
+                speedPxPerSecond = scaledMarqueeSpeed(90f, multiplier),
+                travelDistancePx = 1_000f,
+            )
+        }
+
+        assertEquals(0.47875, progress, 0.000001)
     }
 
     @Test
@@ -90,6 +108,20 @@ class MarqueeTimingTest {
             multiline.startPx - multiline.endPx,
             reverse.endPx - reverse.startPx,
         )
+    }
+
+    @Test
+    fun `geometry changes remap the same progress instead of returning to start`() {
+        val progress = 0.4
+        val originalBounds = calculateMarqueeTravelBounds(1_000f, 600f, MotionEffect.RIGHT_TO_LEFT)
+        val widerBounds = calculateMarqueeTravelBounds(1_000f, 800f, MotionEffect.RIGHT_TO_LEFT)
+
+        val originalPosition = marqueeTranslationForProgress(originalBounds, progress)
+        val widerPosition = marqueeTranslationForProgress(widerBounds, progress)
+
+        assertEquals(360f, originalPosition, 0.001f)
+        assertEquals(280f, widerPosition, 0.001f)
+        assertTrue(widerPosition != widerBounds.startPx)
     }
 
     @Test
