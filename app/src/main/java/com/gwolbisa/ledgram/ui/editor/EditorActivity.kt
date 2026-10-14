@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.gwolbisa.ledgram.LEDgramApplication
 import com.gwolbisa.ledgram.R
+import com.gwolbisa.ledgram.ads.InterstitialPreloadCoordinator
 import com.gwolbisa.ledgram.ads.isInterstitialEligible
 import com.gwolbisa.ledgram.data.EditorPreferencesRepository
 import com.gwolbisa.ledgram.model.DisplayConfig
@@ -147,21 +148,31 @@ class EditorActivity : AppCompatActivity() {
             val repository = ledgramApplication.monetizationPreferencesRepository
             val preferences = repository.recordDisplayCompletion()
             val nowMillis = System.currentTimeMillis()
+            val preloadCoordinator = InterstitialPreloadCoordinator(
+                requestPreload = ::requestInterstitialPreloadAfterFrame,
+            )
             if (isInterstitialEligible(preferences, nowMillis)) {
-                ledgramApplication.adsManager.showInterstitialIfAvailable(
+                val adStarted = ledgramApplication.adsManager.showInterstitialIfAvailable(
                     activity = this@EditorActivity,
                     onShown = {
                         lifecycleScope.launch {
                             repository.recordInterstitialShown(System.currentTimeMillis())
                         }
                     },
+                    onFinished = preloadCoordinator::onFinished,
                 )
-            }
-            interstitialPreloadRequest = if (interstitialPreloadRequest == Int.MAX_VALUE) {
-                1
+                preloadCoordinator.onShowResult(adStarted)
             } else {
-                interstitialPreloadRequest + 1
+                preloadCoordinator.onShowResult(adStarted = false)
             }
+        }
+    }
+
+    private fun requestInterstitialPreloadAfterFrame() {
+        interstitialPreloadRequest = if (interstitialPreloadRequest == Int.MAX_VALUE) {
+            1
+        } else {
+            interstitialPreloadRequest + 1
         }
     }
 }

@@ -55,22 +55,27 @@ internal class InterstitialController(
     fun showIfAvailable(
         activity: Activity,
         onShown: () -> Unit,
+        onFinished: () -> Unit,
     ): Boolean {
         if (!canRequestAds() || showing) return false
         val ad = interstitialAd ?: return false
+        val shownOnce = OneShotAction(onShown)
+        val finishedOnce = OneShotAction(onFinished)
         interstitialAd = null
         showing = true
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdShowedFullScreenContent() {
-                onShown()
+                shownOnce.invoke()
             }
 
             override fun onAdDismissedFullScreenContent() {
                 showing = false
+                finishedOnce.invoke()
             }
 
             override fun onAdFailedToShowFullScreenContent(error: AdError) {
                 showing = false
+                finishedOnce.invoke()
             }
         }
         return try {
@@ -78,6 +83,7 @@ internal class InterstitialController(
             true
         } catch (_: RuntimeException) {
             showing = false
+            finishedOnce.invoke()
             false
         }
     }

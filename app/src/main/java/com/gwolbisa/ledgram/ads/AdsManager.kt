@@ -40,7 +40,8 @@ class AdsManager(context: Context) {
     fun showInterstitialIfAvailable(
         activity: Activity,
         onShown: () -> Unit,
-    ): Boolean = interstitialController.showIfAvailable(activity, onShown)
+        onFinished: () -> Unit,
+    ): Boolean = interstitialController.showIfAvailable(activity, onShown, onFinished)
 
     private fun initializeOnce() {
         if (!initializationStarted.compareAndSet(false, true)) return
