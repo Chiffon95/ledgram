@@ -13,7 +13,7 @@
 
 - 개발자: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
-- Version: `0.9.1` (`versionCode 10`)
+- Version: `0.9.2` (`versionCode 11`)
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
 
@@ -22,10 +22,10 @@
 핵심 기능은 거의 끝났고 현재 출시 준비 중.
 
 - Editor → fullscreen Display
-- Text + Glow / Dot Matrix
+- 텍스트 + 글로우 / 도트 매트릭스
 - Static / 양방향 Marquee
 - Blink / Pulse / Fade
-- Motion Speed / Effect Speed 실시간 변경
+- 이동 속도 / 효과 속도 실시간 변경
 - Bold / Italic / Underline
 - 색상 선택 / HSV / HEX / 대비 경고
 - Preferences DataStore 저장
@@ -42,20 +42,20 @@
 - 저대비 경고
 - 최근 색상은 세션 단위
 - Bold / Italic / Underline
-- Render Style
-  - Text + Glow
-  - Dot Matrix
-- Motion
+- 표시 방식
+  - 텍스트 + 글로우
+  - 도트 매트릭스
+- 움직임
   - 고정
   - 오른쪽 → 왼쪽
   - 왼쪽 → 오른쪽
-- Effect
+- 효과
   - 없음
   - 깜박임
   - 숨쉬기
   - 부드러운 점멸
-- Motion Speed / Effect Speed: `0.25x ~ 5.0x`
-- Live Preview
+- 이동 속도 / 효과 속도: `0.25x ~ 5.0x`
+- 미리보기
 - 전체 Editor 앱 바 없이 Settings로 이동할 수 있는 compact Preview header
 
 빈 문구는 Preview에서만 `Hello!` 표시. 저장값이나 Display에는 들어가지 않음.
@@ -78,17 +78,17 @@
 - Marquee: 여러 줄 전체를 하나의 block으로 이동
 - Marquee 줄 내부 자동 줄바꿈 없음
 
-## Render Style
+## 표시 방식
 
-### Text + Glow
+### 텍스트 + 글로우
 
 Android system font + fallback 사용.
 
 한글/영문/기타 Unicode는 시스템 폰트 지원 범위에서 그대로 표시.
 
-### Dot Matrix
+### 도트 매트릭스
 
-5×7 programmatic glyph.
+영문/숫자/문장 부호는 5×7, 조합형 한글 음절은 11×11 programmatic glyph 사용.
 
 지원:
 
@@ -97,8 +97,10 @@ Android system font + fallback 사용.
 - 0–9
 - 공백
 - `. , ! ? : ; - _ + / \\ ( ) [ ] # @`
+- 현대 한글 완성형 음절(`U+AC00..U+D7A3`)
+- 한글/영문 혼합 문구
 
-미지원 문자는 `?`로 표시.
+한글은 기기 폰트에 의존하지 않고 초성/중성/종성 stroke template을 조합해 항상 같은 형태로 표시. 미지원 Unicode는 code point당 `?` 하나로 표시.
 
 스타일:
 
@@ -108,7 +110,7 @@ Android system font + fallback 사용.
 
 스타일 때문에 늘어난 폭/높이도 Static fitting과 Marquee travel에 포함.
 
-## Motion / Effect
+## 움직임 / 효과
 
 Motion과 Effect는 독립 조합.
 
@@ -120,8 +122,8 @@ Motion과 Effect는 독립 조합.
 
 속도 변경도 서로 독립.
 
-- Motion Speed 변경: 현재 Marquee 위치 유지
-- Effect Speed 변경: 현재 effect phase 유지
+- 이동 속도 변경: 현재 Marquee 위치 유지
+- 효과 속도 변경: 현재 effect phase 유지
 - 둘 다 다음 frame부터 새 속도 적용
 
 ## DataStore
@@ -131,9 +133,9 @@ Editor 상태:
 - 문구
 - 글자색 / 배경색
 - Bold / Italic / Underline
-- Render Style
-- Motion / Effect
-- Motion Speed / Effect Speed
+- 표시 방식
+- 움직임 / 효과
+- 이동 속도 / 효과 속도
 
 광고 상태:
 
@@ -193,9 +195,7 @@ Google Mobile Ads / Google UMP는 광고와 동의 처리용.
 - Privacy Options
 - Editor 설정 초기화
 
-한국어 UI에서도 제품/기술 용어는 필요 이상으로 번역하지 않음.
-
-`Render Style`, `Text + Glow`, `Dot Matrix`, `Motion`, `Effect`, `Motion Speed`, `Effect Speed`
+한국어 Editor control은 `미리보기`, `표시 방식`, `텍스트 + 글로우`, `도트 매트릭스`, `움직임`, `효과`, `이동 속도`, `효과 속도`를 사용. LEDgram, Gowl Labs, Display, HEX, SDK, Google 제품명 같은 제품/기술 용어는 필요한 경우 그대로 유지.
 
 ## 기술 스택
 

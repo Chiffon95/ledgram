@@ -34,6 +34,71 @@ class DotMatrixLayoutTest {
     }
 
     @Test
+    fun `mixed Korean English and digits use actual glyph widths`() {
+        val layout = createDotMatrixBlockLayout("LEDgram 최고 123")
+        val glyphs = layout.lines.single().glyphs
+        val expectedContentWidth = glyphs.sumOf {
+            dotMatrixGlyphWidthUnits(it).toDouble()
+        }.toFloat() + (glyphs.size - 1) * DOT_MATRIX_CHARACTER_GAP_RATIO
+
+        assertTrue(glyphs.any { it.width == DOT_MATRIX_GLYPH_WIDTH })
+        assertTrue(glyphs.any { it.width == DOT_MATRIX_HANGUL_GLYPH_WIDTH })
+        assertEquals(expectedContentWidth, layout.lines.single().contentWidthUnits, 0.0001f)
+        assertEquals(expectedContentWidth, layout.widthUnits, 0.0001f)
+    }
+
+    @Test
+    fun `mixed line uses tallest glyph and centers shorter glyph geometry`() {
+        val layout = createDotMatrixBlockLayout("GO 한국")
+        val line = layout.lines.single()
+        val latin = dotMatrixGlyphFor('G')
+        val hangul = dotMatrixGlyphFor('한')
+
+        assertEquals(
+            dotMatrixGlyphHeightUnits(hangul),
+            line.contentHeightUnits,
+            0.0001f,
+        )
+        assertTrue(line.contentHeightUnits > dotMatrixGlyphHeightUnits(latin))
+        assertTrue(dotMatrixVerticalAlignmentOffsetUnits(line.contentHeightUnits, latin) > 0f)
+        assertEquals(0f, dotMatrixVerticalAlignmentOffsetUnits(line.contentHeightUnits, hangul), 0f)
+    }
+
+    @Test
+    fun `italic slant scales over each glyph row count`() {
+        listOf(dotMatrixGlyphFor('A'), dotMatrixGlyphFor('한')).forEach { glyph ->
+            assertEquals(
+                DOT_MATRIX_ITALIC_OVERSCAN_RATIO,
+                dotMatrixItalicOffsetUnits(glyph, 0),
+                0f,
+            )
+            assertEquals(0f, dotMatrixItalicOffsetUnits(glyph, glyph.height - 1), 0f)
+        }
+    }
+
+    @Test
+    fun `multiline Hangul centers logical lines in widest block`() {
+        val layout = createDotMatrixBlockLayout("안녕하세요\nLEDgram")
+
+        assertEquals(2, layout.lines.size)
+        assertEquals(layout.lines.maxOf { it.widthUnits }, layout.widthUnits, 0.0001f)
+        assertTrue(layout.heightUnits > layout.lines.sumOf { it.contentHeightUnits.toDouble() })
+    }
+
+    @Test
+    fun `Hangul styles include bold italic and underline geometry`() {
+        val normal = createDotMatrixBlockLayout("응원\nGO GO")
+        val styled = createDotMatrixBlockLayout("응원\nGO GO", bold = true, italic = true, underline = true)
+
+        assertEquals(DOT_MATRIX_BOLD_RADIUS_RATIO, dotMatrixDotRadiusUnits(styled.bold), 0f)
+        assertTrue(styled.widthUnits > normal.widthUnits)
+        assertTrue(styled.heightUnits > normal.heightUnits)
+        assertTrue(styled.lines.all { it.underlined })
+        assertTrue(calculateFittingDotSize(styled, 320f, 180f, fitWidth = true) > 0f)
+        assertTrue(calculateFittingDotSize(styled, 0f, 180f, fitWidth = false) > 0f)
+    }
+
+    @Test
     fun `bold single-dot radius adds symmetric geometry and preserves spacing`() {
         val normal = createDotMatrixBlockLayout("LEDGRAM")
         val bold = createDotMatrixBlockLayout("LEDGRAM", bold = true)

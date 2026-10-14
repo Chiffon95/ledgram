@@ -18,6 +18,23 @@ internal val DOT_MATRIX_GLYPH_WIDTH_UNITS =
 internal val DOT_MATRIX_GLYPH_HEIGHT_UNITS =
     DOT_MATRIX_GLYPH_HEIGHT + (DOT_MATRIX_GLYPH_HEIGHT - 1) * DOT_MATRIX_DOT_GAP_RATIO
 
+internal fun dotMatrixGlyphWidthUnits(glyph: DotMatrixGlyph): Float =
+    glyph.width + (glyph.width - 1) * DOT_MATRIX_DOT_GAP_RATIO
+
+internal fun dotMatrixGlyphHeightUnits(glyph: DotMatrixGlyph): Float =
+    glyph.height + (glyph.height - 1) * DOT_MATRIX_DOT_GAP_RATIO
+
+internal fun dotMatrixItalicOffsetUnits(glyph: DotMatrixGlyph, row: Int): Float {
+    require(row in 0 until glyph.height)
+    return DOT_MATRIX_ITALIC_OVERSCAN_RATIO *
+        (glyph.height - 1 - row) / (glyph.height - 1).coerceAtLeast(1)
+}
+
+internal fun dotMatrixVerticalAlignmentOffsetUnits(
+    lineContentHeightUnits: Float,
+    glyph: DotMatrixGlyph,
+): Float = (lineContentHeightUnits - dotMatrixGlyphHeightUnits(glyph)) / 2f
+
 internal data class DotMatrixBlockSize(
     val width: Float,
     val height: Float,
@@ -35,6 +52,8 @@ internal data class DotMatrixStyleGeometry(
 
 internal data class DotMatrixLineLayout(
     val glyphs: List<DotMatrixGlyph>,
+    val contentWidthUnits: Float,
+    val contentHeightUnits: Float,
     val widthUnits: Float,
     val heightUnits: Float,
     val underlined: Boolean,
@@ -70,12 +89,12 @@ internal fun dotMatrixDotRadiusUnits(bold: Boolean): Float =
     if (bold) DOT_MATRIX_BOLD_RADIUS_RATIO else DOT_MATRIX_NORMAL_RADIUS_RATIO
 
 internal fun calculateDotMatrixLineWidthUnits(
-    glyphCount: Int,
+    glyphs: List<DotMatrixGlyph>,
     styleGeometry: DotMatrixStyleGeometry,
 ): Float {
-    if (glyphCount <= 0) return 0f
-    val baseWidth = glyphCount * DOT_MATRIX_GLYPH_WIDTH_UNITS +
-        (glyphCount - 1) * DOT_MATRIX_CHARACTER_GAP_RATIO
+    if (glyphs.isEmpty()) return 0f
+    val baseWidth = glyphs.sumOf { dotMatrixGlyphWidthUnits(it).toDouble() }.toFloat() +
+        (glyphs.size - 1) * DOT_MATRIX_CHARACTER_GAP_RATIO
     return baseWidth + styleGeometry.horizontalExtraWidthUnits
 }
 
@@ -89,10 +108,21 @@ internal fun createDotMatrixBlockLayout(
     val lines = splitDotMatrixLines(message).map { line ->
         val glyphs = line.codePoints().toArray().map(::dotMatrixGlyphFor)
         val underlined = underline && glyphs.isNotEmpty()
+        // Preserve explicit empty lines at the compact font's normal line height.
+        val contentHeightUnits = glyphs.maxOfOrNull(::dotMatrixGlyphHeightUnits)
+            ?: DOT_MATRIX_GLYPH_HEIGHT_UNITS
+        val contentWidthUnits = if (glyphs.isEmpty()) {
+            0f
+        } else {
+            glyphs.sumOf { dotMatrixGlyphWidthUnits(it).toDouble() }.toFloat() +
+                (glyphs.size - 1) * DOT_MATRIX_CHARACTER_GAP_RATIO
+        }
         DotMatrixLineLayout(
             glyphs = glyphs,
-            widthUnits = calculateDotMatrixLineWidthUnits(glyphs.size, styleGeometry),
-            heightUnits = DOT_MATRIX_GLYPH_HEIGHT_UNITS +
+            contentWidthUnits = contentWidthUnits,
+            contentHeightUnits = contentHeightUnits,
+            widthUnits = calculateDotMatrixLineWidthUnits(glyphs, styleGeometry),
+            heightUnits = contentHeightUnits +
                 (if (glyphs.isNotEmpty()) styleGeometry.boldExtraHeightUnits else 0f) +
                 (if (underlined) styleGeometry.underlineExtraHeightUnits else 0f),
             underlined = underlined,

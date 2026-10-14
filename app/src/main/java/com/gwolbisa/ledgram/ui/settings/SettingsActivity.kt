@@ -11,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gwolbisa.ledgram.LEDgramApplication
 import com.gwolbisa.ledgram.data.EditorPreferencesRepository
@@ -30,6 +31,9 @@ class SettingsActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         setContent {
+            // Settings handles locale changes in place. Reading this state invalidates the
+            // composition (including stringResource calls) for locale/layout-direction changes.
+            LocalConfiguration.current
             LEDgramTheme {
                 val privacyOptionsRequired by ledgramApplication.consentManager
                     .privacyOptionsRequired

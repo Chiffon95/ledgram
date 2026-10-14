@@ -181,15 +181,12 @@ private fun DotMatrixCanvas(
     Canvas(modifier = Modifier.requiredSize(widthDp, heightDp)) {
         val dotGapPx = dotSizePx * DOT_MATRIX_DOT_GAP_RATIO
         val pitchPx = dotSizePx + dotGapPx
-        val glyphWidthPx = DOT_MATRIX_GLYPH_WIDTH_UNITS * dotSizePx
-        val glyphHeightPx = DOT_MATRIX_GLYPH_HEIGHT_UNITS * dotSizePx
         val characterGapPx = dotSizePx * DOT_MATRIX_CHARACTER_GAP_RATIO
         val lineGapPx = dotSizePx * DOT_MATRIX_LINE_GAP_RATIO
         val boldHorizontalOverscanPx =
             layout.styleGeometry.boldExtraWidthUnits * dotSizePx / 2f
         val boldVerticalOverscanPx =
             layout.styleGeometry.boldExtraHeightUnits * dotSizePx / 2f
-        val italicOverscanPx = layout.styleGeometry.italicExtraWidthUnits * dotSizePx
         val underlineSpacingPx = DOT_MATRIX_UNDERLINE_SPACING_RATIO * dotSizePx
         val normalRadius = DOT_MATRIX_NORMAL_RADIUS_RATIO * dotSizePx
         val radius = dotMatrixDotRadiusUnits(layout.bold) * dotSizePx
@@ -202,34 +199,33 @@ private fun DotMatrixCanvas(
         layout.lines.forEachIndexed { lineIndex, line ->
             val lineWidthPx = line.widthUnits * dotSizePx
             val lineStartX = (widthPx - lineWidthPx) / 2f
-            line.glyphs.forEachIndexed { glyphIndex, glyph ->
-                val glyphStartX = lineStartX + boldHorizontalOverscanPx +
-                    glyphIndex * (glyphWidthPx + characterGapPx)
-                for (row in 0 until DOT_MATRIX_GLYPH_HEIGHT) {
+            var glyphStartX = lineStartX + boldHorizontalOverscanPx
+            line.glyphs.forEach { glyph ->
+                val glyphStartY = lineStartY + boldVerticalOverscanPx +
+                    dotMatrixVerticalAlignmentOffsetUnits(line.contentHeightUnits, glyph) * dotSizePx
+                for (row in 0 until glyph.height) {
                     val italicOffsetPx = if (layout.italic) {
-                        italicOverscanPx *
-                            (DOT_MATRIX_GLYPH_HEIGHT - 1 - row) /
-                            (DOT_MATRIX_GLYPH_HEIGHT - 1)
+                        dotMatrixItalicOffsetUnits(glyph, row) * dotSizePx
                     } else {
                         0f
                     }
-                    for (column in 0 until DOT_MATRIX_GLYPH_WIDTH) {
+                    for (column in 0 until glyph.width) {
                         if (glyph.isActive(row, column)) {
                             drawStyledDot(
                                 Offset(
                                     x = glyphStartX + column * pitchPx + normalRadius +
                                         italicOffsetPx,
-                                    y = lineStartY + boldVerticalOverscanPx +
-                                        row * pitchPx + normalRadius,
+                                    y = glyphStartY + row * pitchPx + normalRadius,
                                 ),
                             )
                         }
                     }
                 }
+                glyphStartX += dotMatrixGlyphWidthUnits(glyph) * dotSizePx + characterGapPx
             }
 
             if (line.underlined) {
-                val styledGlyphHeightPx = glyphHeightPx +
+                val styledGlyphHeightPx = line.contentHeightUnits * dotSizePx +
                     layout.styleGeometry.boldExtraHeightUnits * dotSizePx
                 val underlineY = lineStartY + styledGlyphHeightPx +
                     underlineSpacingPx + radius

@@ -13,7 +13,7 @@ Android LED signboard app for concerts, cheering, events, and quick fullscreen m
 
 - Developer: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
-- Version: `0.9.1` (`versionCode 10`)
+- Version: `0.9.2` (`versionCode 11`)
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
 
@@ -88,7 +88,7 @@ Korean, English, and other Unicode text render within system font support.
 
 ### Dot Matrix
 
-Programmatic 5×7 glyphs.
+Programmatic glyphs: 5×7 for Latin/digits/punctuation and 11×11 for composed Korean Hangul syllables.
 
 Supported:
 
@@ -97,8 +97,10 @@ Supported:
 - 0–9
 - spaces
 - `. , ! ? : ; - _ + / \\ ( ) [ ] # @`
+- modern precomposed Korean Hangul syllables (`U+AC00..U+D7A3`)
+- mixed Korean/English text
 
-Unsupported characters use `?`.
+Hangul is built deterministically from reusable choseong/jungseong/jongseong stroke templates; it does not depend on device fonts. Unsupported Unicode uses one `?` per code point.
 
 Styles:
 
@@ -193,9 +195,7 @@ Google Mobile Ads / Google UMP are used for ads and consent handling.
 - Privacy Options
 - Reset Editor Settings
 
-Korean UI keeps product/technical labels in English where that reads better:
-
-`Render Style`, `Text + Glow`, `Dot Matrix`, `Motion`, `Effect`, `Motion Speed`, `Effect Speed`
+Korean Editor controls use localized labels for Preview, Render Style, Motion, Effect, and their speed controls. Product names and technical terms such as LEDgram, Gowl Labs, Display, HEX, SDK, and Google product names remain unchanged where appropriate.
 
 ## Tech stack
 
