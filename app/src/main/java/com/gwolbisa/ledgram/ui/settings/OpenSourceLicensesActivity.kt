@@ -31,6 +31,11 @@ private data class LicenseEntry(
     val projectUrl: String,
 )
 
+private data class ThirdPartySdkEntry(
+    val name: String,
+    val documentationUrl: String,
+)
+
 private val licenseEntries = listOf(
     LicenseEntry(
         library = "AndroidX",
@@ -62,15 +67,16 @@ private val licenseEntries = listOf(
         license = "The Apache Software License, Version 2.0",
         projectUrl = "https://github.com/Kotlin/kotlinx.coroutines",
     ),
-    LicenseEntry(
-        library = "Google Mobile Ads SDK",
-        license = "Android Software Development Kit License",
-        projectUrl = "https://developers.google.com/admob/android/quick-start",
+)
+
+private val thirdPartySdkEntries = listOf(
+    ThirdPartySdkEntry(
+        name = "Google Mobile Ads SDK",
+        documentationUrl = "https://developers.google.com/admob/android/quick-start",
     ),
-    LicenseEntry(
-        library = "Google User Messaging Platform SDK",
-        license = "Android Software Development Kit License",
-        projectUrl = "https://developers.google.com/admob/android/privacy",
+    ThirdPartySdkEntry(
+        name = "Google User Messaging Platform SDK",
+        documentationUrl = "https://developers.google.com/admob/android/privacy",
     ),
 )
 
@@ -116,6 +122,22 @@ private fun OpenSourceLicensesScreen(onBack: () -> Unit) {
         licenseEntries.forEach { entry ->
             LicenseRow(entry)
         }
+        Spacer(Modifier.height(28.dp))
+        Text(
+            text = stringResource(R.string.third_party_sdks_title),
+            color = LedAmber,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleLarge,
+        )
+        Text(
+            text = stringResource(R.string.third_party_sdks_body),
+            color = LedMuted,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp, bottom = 6.dp),
+        )
+        thirdPartySdkEntries.forEach { entry ->
+            ThirdPartySdkRow(entry)
+        }
     }
 }
 
@@ -139,6 +161,28 @@ private fun LicenseRow(entry: LicenseEntry) {
         )
         Text(
             text = entry.projectUrl,
+            color = LedMuted,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+    }
+    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+}
+
+@Composable
+private fun ThirdPartySdkRow(entry: ThirdPartySdkEntry) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 14.dp),
+    ) {
+        Text(
+            text = entry.name,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = entry.documentationUrl,
             color = LedMuted,
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(top = 4.dp),

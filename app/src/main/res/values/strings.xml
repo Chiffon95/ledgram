@@ -89,6 +89,8 @@
     <string name="privacy_policy_controls_body">You can reset Editor settings locally from Settings. Editor reset does not reset Google UMP consent or privacy choices, advertising state, or monetization frequency counters and timestamps. Those settings have separate purposes and controls.</string>
     <string name="privacy_policy_changes_title">Policy changes</string>
     <string name="privacy_policy_changes_body">Future versions may update this policy if LEDgram’s behavior changes. The effective date above identifies this version of the policy.</string>
-    <string name="open_source_licenses_intro">This curated list covers the major libraries used by the current build and the license declared by each project’s published metadata.</string>
+    <string name="open_source_licenses_intro">This list covers the major open-source libraries used by the current build.</string>
+    <string name="third_party_sdks_title">Third-party SDKs</string>
+    <string name="third_party_sdks_body">These Google SDKs are used by LEDgram for advertising and consent management. They are governed by Google’s applicable terms and policies and are not listed here as open-source libraries.</string>
 </resources>
 
