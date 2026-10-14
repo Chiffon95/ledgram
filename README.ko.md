@@ -2,9 +2,16 @@
 
 # LEDgram
 
+![Android](https://img.shields.io/badge/Android-API%2024+-3DDC84?logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.4.21-7F52FF?logo=kotlin&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
+![Gradle](https://img.shields.io/badge/Gradle-9.8.0-02303A?logo=gradle&logoColor=white)
+![JDK](https://img.shields.io/badge/JDK-17-ED8B00?logo=openjdk&logoColor=white)
+![AdMob](https://img.shields.io/badge/Google%20Mobile%20Ads-25.5.0-4285F4?logo=googleadmob&logoColor=white)
+
 휴대폰 화면을 콘서트·응원·행사용 LED 전광판처럼 쓰는 Android 앱.
 
-- 개발자: `GWOL LABS`
+- 개발자: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
@@ -168,13 +175,13 @@ Settings에 포함:
 - Firebase Analytics 없음
 - Crashlytics 없음
 - 자체 telemetry 없음
-- LED 문구를 GWOL LABS 서버로 업로드하지 않음
+- LED 문구를 Gowl Labs 서버로 업로드하지 않음
 
 Google Mobile Ads / Google UMP는 광고와 동의 처리용.
 
 ## Settings
 
-- 앱 이름 / versionName / GWOL LABS
+- 앱 이름 / versionName / Gowl Labs
 - 시스템 기본 언어 표시
 - Privacy Policy
 - Open Source Licenses
