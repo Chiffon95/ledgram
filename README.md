@@ -6,11 +6,11 @@ LEDgram is a lightweight Android LED signboard app that turns a phone screen int
 
 - **App name:** LEDgram
 - **Package:** `com.gwolbisa.ledgram`
-- **Studio:** GWOL LABS
+- **Developer:** GWOL LABS
 
 ## Project status
 
-LEDgram is in early development. The current milestone adds a consent-gated AdMob monetization foundation to the working LED signboard experience.
+LEDgram is in early development. The current milestone completes the in-app Settings, privacy, open-source notices, and Editor reset experience around the working LED signboard and consent-gated AdMob foundation.
 
 Implemented:
 
@@ -28,7 +28,9 @@ Implemented:
 - Preferences DataStore persistence for the stored multiline message, text/background colors, text styles, render style, Motion, Visual Effect, Motion Speed, and Effect Speed; the preview-only `Hello!` sample and recent colors are not persisted
 - Immersive Display mode, maximum window brightness, and keep-screen-on behavior
 - Tap-to-show Exit overlay
-- Settings action and a minimal Settings screen with system-language information, dynamic app version, studio details, and truthful Privacy Policy/Open Source Licenses placeholders
+- Production-quality Settings sections for app information, privacy/legal information, and data controls, with the GWOL LABS developer brand and version derived from app metadata
+- Offline English/Korean Privacy Policy and a curated, scrollable Open Source Licenses screen based on the project's actual major dependencies
+- Confirmed Reset Editor Settings action that immediately restores canonical Editor defaults while preserving UMP consent and monetization frequency state
 - Google Mobile Ads foundation with a compact 320×50 banner below Start Display in the Editor; the complete footer is hidden while the keyboard is open, and Display remains ad-free
 - UMP consent information refresh on every app launch, ad-request gating through `canRequestAds()`, and a functional conditional Privacy Options entry in Settings
 - Opportunistically preloaded interstitial candidate after every five explicitly completed Display sessions, capped at two successfully shown interstitials in a rolling 30-minute window; unavailable or failed ads never block returning to Editor
@@ -39,11 +41,12 @@ Implemented:
 Planned:
 
 - Production AdMob account/app/ad-unit configuration and final consent-message setup
-- In-app language switching and final production legal content
+- In-app language switching
+- A public Privacy Policy URL for Google Play production publication
 
 ## Current milestone scope
 
-The current MVP supports editing a 100-code-point message with any number of explicit line breaks, choosing colors and text styles, and selecting Text + Glow or Dot Matrix in both the Editor preview and the landscape fullscreen display. Static or bidirectional marquee motion combines independently with None, Blink, Pulse, or Fade. Separate frame clocks drive marquee progress and visual-effect phase for both render styles. Changing Motion Speed updates distance progression on the next frame without resetting normalized marquee position; changing Effect Speed likewise preserves the current alpha/scale phase. Direction or message changes may reset marquee progress, while viewport, measured width, color, style geometry, and either speed do not. During marquee Pulse, scale remains anchored to the direction-aware leading edge. Motion Speed and Effect Speed are independent 0.25x–5.0x controls. Text + Glow Static output preserves all explicit breaks, may auto-wrap, and shrinks the complete centered block to fit. Its marquee preserves explicit lines, disables automatic wrapping within each logical line, fits vertically, and moves all lines together. Dot Matrix uses a programmatic 5×7 glyph grid and the same multiline block semantics: Static fits width and height, while marquee fits height and uses the stable unscaled styled block width for travel. Dot Matrix Bold adds a measured horizontal dot offset, Italic applies a measured row slant, and Underline adds a spaced dot row below each non-empty logical line; all combinations are included in fitting and marquee geometry. Supported characters are A–Z, a–z through uppercase mapping, 0–9, spaces, and common punctuation; unsupported code points use `?`. Preferences DataStore preserves the message, colors, text styles, render style, motion/effect selections, and both speeds across app restarts. The Korean UI intentionally retains the core product labels Render Style, Text + Glow, Dot Matrix, Motion, Effect, Motion Speed, and Effect Speed in English while using natural Korean for descriptive choices and actions. Empty or whitespace-only input shows a preview-only `Hello!` sample without changing or persisting the editor message, leaking into `DisplayConfig`, or enabling fullscreen display. Recent colors remain session-only. The Settings screen reports the system-default language but does not switch languages in-app; its Privacy Policy and Open Source Licenses entries are placeholders.
+The current MVP supports editing a 100-code-point message with any number of explicit line breaks, choosing colors and text styles, and selecting Text + Glow or Dot Matrix in both the Editor preview and the landscape fullscreen display. Static or bidirectional marquee motion combines independently with None, Blink, Pulse, or Fade. Separate frame clocks drive marquee progress and visual-effect phase for both render styles. Changing Motion Speed updates distance progression on the next frame without resetting normalized marquee position; changing Effect Speed likewise preserves the current alpha/scale phase. Direction or message changes may reset marquee progress, while viewport, measured width, color, style geometry, and either speed do not. During marquee Pulse, scale remains anchored to the direction-aware leading edge. Motion Speed and Effect Speed are independent 0.25x–5.0x controls. Text + Glow Static output preserves all explicit breaks, may auto-wrap, and shrinks the complete centered block to fit. Its marquee preserves explicit lines, disables automatic wrapping within each logical line, fits vertically, and moves all lines together. Dot Matrix uses a programmatic 5×7 glyph grid and the same multiline block semantics: Static fits width and height, while marquee fits height and uses the stable unscaled styled block width for travel. Dot Matrix Bold adds a measured horizontal dot offset, Italic applies a measured row slant, and Underline adds a spaced dot row below each non-empty logical line; all combinations are included in fitting and marquee geometry. Supported characters are A–Z, a–z through uppercase mapping, 0–9, spaces, and common punctuation; unsupported code points use `?`. Preferences DataStore preserves the message, colors, text styles, render style, motion/effect selections, and both speeds across app restarts. The Korean UI intentionally retains the core product labels Render Style, Text + Glow, Dot Matrix, Motion, Effect, Motion Speed, and Effect Speed in English while using natural Korean for descriptive choices and actions. Empty or whitespace-only input shows a preview-only `Hello!` sample without changing or persisting the editor message, leaking into `DisplayConfig`, or enabling fullscreen display. Recent colors remain session-only. Settings reports the system-default language, app version, and GWOL LABS developer brand. Its Privacy Policy and curated dependency licenses are available entirely offline in the active system language. Reset Editor Settings clears only Editor preference keys, immediately restores the live Editor to its fresh-install defaults, and leaves UMP consent plus the Display-exit/interstitial timestamps untouched.
 
 Monetization is isolated from the core Display experience. UMP refreshes consent information at launch and ads initialize only when UMP permits ad requests. Editor alone can show a centered 320×50 banner below Start Display; both controls disappear while the keyboard is open. Display returns an explicit completion result only for a real Exit or Back action; each result increments a persisted counter exactly once. At five exits, Editor may show one already-loaded interstitial if fewer than two interstitials were successfully shown during the previous 30 minutes. A successful `onAdShowedFullScreenContent` resets the exit counter and records its timestamp; load/unavailable/show failures leave the counter intact. Display contains no banner, interstitial trigger, or consent form. Privacy Options appears in Settings only when UMP requires it. All ad paths fail open, and no message text is supplied to the SDK.
 
@@ -53,7 +56,7 @@ Monetization is isolated from the core Display experience. UMP refreshes consent
 - Gradle 9.8.0
 - Kotlin 2.4.21
 - Jetpack Compose and Material 3
-- Three Android activities (`EditorActivity`, `DisplayActivity`, and `SettingsActivity`)
+- Compose-based Android activities for Editor, Display, Settings, Privacy Policy, and Open Source Licenses
 - Gradle Kotlin DSL with a version catalog
 - AndroidX Core SplashScreen
 - AndroidX Preferences DataStore 1.2.1
@@ -74,7 +77,7 @@ app/src/main/java/com/gwolbisa/ledgram/
 │   ├── components/ # Shared LED preview/text rendering
 │   ├── display/    # Landscape fullscreen display
 │   ├── editor/     # Portrait message editor
-│   ├── settings/   # Minimal app information and legal placeholders
+│   ├── settings/   # App information, local legal screens, and scoped Editor reset
 │   └── theme/      # Material theme and brand colors
 └── util/           # Message, color, contrast, and recent-color utilities
 ```
@@ -107,9 +110,9 @@ The debug APK is generated under `app/build/outputs/apk/debug/` and is ignored b
 
 ## Test ads, privacy, and analytics
 
-**THE CURRENT BUILD USES GOOGLE TEST AD IDS.** Before a production release, replace the complete test App ID and both test ad unit IDs with values from the production AdMob app; do not mix a production App ID with test unit IDs accidentally. Configure and verify the UMP consent messages and production privacy/legal content at the same time.
+**THE CURRENT BUILD USES GOOGLE TEST AD IDS.** Production AdMob IDs are not configured. Before a production release, replace the complete test App ID and both test ad unit IDs with values from the production AdMob app; do not mix a production App ID with test unit IDs accidentally. Configure and verify the UMP consent messages at the same time.
 
-The app includes Google Mobile Ads and UMP but no Firebase Analytics, Crashlytics, custom tracking, telemetry, or cloud upload. Preferences DataStore keeps local Editor settings plus the Display-exit count and two recent interstitial timestamps. LEDgram never manually sends or logs the user-entered message for advertising or analytics. SDK/network failures do not block editing, previewing, Display, or persistence.
+The app includes Google Mobile Ads and UMP but no Firebase Analytics, Crashlytics, custom tracking, telemetry, or cloud upload. Preferences DataStore keeps local Editor settings plus the Display-exit count and two recent interstitial timestamps. LEDgram never manually sends or logs the user-entered message for advertising or analytics. SDK/network failures do not block editing, previewing, Display, or persistence. A localized Privacy Policy is available inside the app, but Google Play production publication still requires a public Privacy Policy URL; that URL has not been configured yet.
 
 ## License
 

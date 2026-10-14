@@ -32,6 +32,15 @@ class EditorActivity : ComponentActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) recordCompletedDisplaySession()
     }
+    private val settingsLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == RESULT_OK &&
+            result.data?.getBooleanExtra(SettingsActivity.EXTRA_EDITOR_SETTINGS_RESET, false) == true
+        ) {
+            editorViewModel.applyCanonicalDefaultsAfterReset()
+        }
+    }
 
     private val ledgramApplication: LEDgramApplication
         get() = application as LEDgramApplication
@@ -82,7 +91,7 @@ class EditorActivity : ComponentActivity() {
     }
 
     private fun openSettings() {
-        startActivity(Intent(this, SettingsActivity::class.java))
+        settingsLauncher.launch(Intent(this, SettingsActivity::class.java))
     }
 
     private fun recordCompletedDisplaySession() {

@@ -14,24 +14,35 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gwolbisa.ledgram.R
 import com.gwolbisa.ledgram.ui.theme.LedAmber
 import com.gwolbisa.ledgram.ui.theme.LedMuted
+import kotlinx.coroutines.launch
 
 private val SettingsContentMaxWidth = 720.dp
 
@@ -41,11 +52,47 @@ fun SettingsScreen(
     versionName: String,
     showPrivacyOptions: Boolean,
     onPrivacyOptions: () -> Unit,
+    onPrivacyPolicy: () -> Unit,
+    onOpenSourceLicenses: () -> Unit,
+    onResetEditorSettings: suspend () -> Boolean,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    var showResetDialog by remember { mutableStateOf(false) }
+    val resetSuccessMessage = stringResource(R.string.settings_reset_success)
+
+    if (showResetDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetDialog = false },
+            title = { Text(stringResource(R.string.settings_reset_dialog_title)) },
+            text = { Text(stringResource(R.string.settings_reset_dialog_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showResetDialog = false
+                        coroutineScope.launch {
+                            if (onResetEditorSettings()) {
+                                snackbarHostState.showSnackbar(resetSuccessMessage)
+                            }
+                        }
+                    },
+                ) {
+                    Text(stringResource(R.string.settings_reset_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+    }
+
     Scaffold(
         modifier = modifier,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.settings)) },
@@ -74,13 +121,7 @@ fun SettingsScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp),
             ) {
-                SettingsSectionTitle(stringResource(R.string.settings_language))
-                SettingsRow(
-                    label = stringResource(R.string.settings_language),
-                    value = stringResource(R.string.settings_system_default),
-                )
-
-                SettingsSectionTitle(stringResource(R.string.settings_app_information))
+                SettingsSectionTitle(stringResource(R.string.settings_section_app))
                 SettingsRow(
                     label = stringResource(R.string.settings_app_name),
                     value = stringResource(R.string.app_name),
@@ -90,24 +131,34 @@ fun SettingsScreen(
                     value = versionName,
                 )
                 SettingsRow(
-                    label = stringResource(R.string.settings_studio),
+                    label = stringResource(R.string.settings_developer),
                     value = stringResource(R.string.studio_name),
+                )
+                SettingsRow(
+                    label = stringResource(R.string.settings_language),
+                    value = stringResource(R.string.settings_system_default),
                 )
 
                 SettingsSectionTitle(stringResource(R.string.settings_privacy_legal))
+                SettingsActionRow(
+                    label = stringResource(R.string.settings_privacy_policy),
+                    onClick = onPrivacyPolicy,
+                )
+                SettingsActionRow(
+                    label = stringResource(R.string.settings_open_source_licenses),
+                    onClick = onOpenSourceLicenses,
+                )
                 if (showPrivacyOptions) {
                     SettingsActionRow(
                         label = stringResource(R.string.settings_privacy_options),
                         onClick = onPrivacyOptions,
                     )
                 }
-                SettingsRow(
-                    label = stringResource(R.string.settings_privacy_policy),
-                    value = stringResource(R.string.settings_not_available_yet),
-                )
-                SettingsRow(
-                    label = stringResource(R.string.settings_open_source_licenses),
-                    value = stringResource(R.string.settings_coming_later),
+
+                SettingsSectionTitle(stringResource(R.string.settings_section_data))
+                SettingsActionRow(
+                    label = stringResource(R.string.settings_reset_editor),
+                    onClick = { showResetDialog = true },
                 )
                 Spacer(Modifier.height(24.dp))
             }
@@ -121,7 +172,7 @@ private fun SettingsActionRow(label: String, onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onClick)
+                .clickable(role = Role.Button, onClick = onClick)
                 .padding(vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

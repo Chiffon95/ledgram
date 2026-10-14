@@ -26,6 +26,16 @@
             android:theme="@style/Theme.LEDgram" />
 
         <activity
+            android:name=".ui.settings.PrivacyPolicyActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LEDgram" />
+
+        <activity
+            android:name=".ui.settings.OpenSourceLicensesActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LEDgram" />
+
+        <activity
             android:name=".ui.editor.EditorActivity"
             android:exported="true"
             android:theme="@style/Theme.LEDgram.Splash">

@@ -3,6 +3,7 @@ package com.gwolbisa.ledgram.ui.editor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.gwolbisa.ledgram.data.EditorPreferences
 import com.gwolbisa.ledgram.data.EditorPreferencesRepository
 import com.gwolbisa.ledgram.data.toEditorPreferences
 import com.gwolbisa.ledgram.data.toEditorUiState
@@ -43,6 +44,12 @@ class EditorViewModel(
     fun setUiState(state: EditorUiState) {
         if (_uiState.value != null) {
             _uiState.value = state
+        }
+    }
+
+    fun applyCanonicalDefaultsAfterReset() {
+        if (_uiState.value != null) {
+            _uiState.value = EditorPreferences().toEditorUiState()
         }
     }
 
