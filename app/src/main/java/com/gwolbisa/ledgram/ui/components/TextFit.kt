@@ -3,6 +3,10 @@ package com.gwolbisa.ledgram.ui.components
 private const val MINIMUM_FIT_FONT_SIZE_SP = 0.01f
 private const val FONT_FIT_SEARCH_STEPS = 16
 
+/** Shared line contract: only an explicit newline creates another logical line. */
+internal fun splitExplicitTextLines(text: String): List<String> =
+    text.split(delimiters = charArrayOf('\n'), ignoreCase = false, limit = Int.MAX_VALUE)
+
 internal fun findLargestFittingFontSize(
     maximumFontSizeSp: Float,
     fits: (Float) -> Boolean,
@@ -30,20 +34,22 @@ internal fun findLargestFittingFontSize(
 
 internal fun isCompleteStaticTextLayout(
     textLength: Int,
+    expectedLineCount: Int,
     lineCount: Int,
     lastLineEnd: Int,
     didOverflowWidth: Boolean,
     didOverflowHeight: Boolean,
-): Boolean = lineCount >= 1 &&
+): Boolean = lineCount == expectedLineCount &&
     lastLineEnd >= textLength &&
     !didOverflowWidth &&
     !didOverflowHeight
 
 internal fun isCompleteMarqueeTextLayout(
     textLength: Int,
+    expectedLineCount: Int,
     lineCount: Int,
     lastLineEnd: Int,
     didOverflowHeight: Boolean,
-): Boolean = lineCount >= 1 &&
+): Boolean = lineCount == expectedLineCount &&
     lastLineEnd >= textLength &&
     !didOverflowHeight

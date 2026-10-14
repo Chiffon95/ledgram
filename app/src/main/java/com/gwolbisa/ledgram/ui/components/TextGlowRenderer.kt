@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.model.MotionEffect
@@ -87,7 +86,6 @@ internal fun TextGlowRenderer(
     config: DisplayConfig,
     marqueeSpeedDpPerSecond: Float,
     modifier: Modifier = Modifier,
-    maximumFontSize: TextUnit = TextUnit.Unspecified,
     staticHorizontalPadding: Dp = 40.dp,
 ) {
     if (config.message.isEmpty()) return
@@ -98,12 +96,8 @@ internal fun TextGlowRenderer(
     )
     BoxWithConstraints(modifier = modifier.clipToBounds()) {
         val density = LocalDensity.current
-        val heightBasedFontSize = with(density) { (maxHeight * 0.72f).toSp() }
-        val effectiveMaximumFontSize = if (maximumFontSize.isSpecified) {
-            minOf(heightBasedFontSize.value, maximumFontSize.value).sp
-        } else {
-            heightBasedFontSize
-        }
+        // Preview and Display derive the same fitting ceiling from their own viewport.
+        val maximumFontSize = with(density) { (maxHeight * 0.72f).toSp() }
 
         when (config.motionEffect) {
             MotionEffect.STATIC -> LedText(
@@ -112,7 +106,7 @@ internal fun TextGlowRenderer(
                 bold = config.bold,
                 italic = config.italic,
                 underline = config.underline,
-                maximumFontSize = effectiveMaximumFontSize,
+                maximumFontSize = maximumFontSize,
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
@@ -128,7 +122,7 @@ internal fun TextGlowRenderer(
             MotionEffect.LEFT_TO_RIGHT,
             -> MarqueeTextGlow(
                 config = config,
-                fontSize = effectiveMaximumFontSize,
+                fontSize = maximumFontSize,
                 baseSpeedDpPerSecond = marqueeSpeedDpPerSecond,
                 visualTransform = visualTransform,
                 modifier = Modifier.fillMaxSize(),
@@ -168,6 +162,7 @@ private fun MarqueeTextGlow(
             config.underline,
             density.fontScale,
         ) {
+            val expectedLineCount = splitExplicitTextLines(config.message).size
             findLargestFittingFontSize(fontSize.value) { candidateSize ->
                 val result = textMeasurer.measure(
                     text = AnnotatedString(config.message),
@@ -188,6 +183,7 @@ private fun MarqueeTextGlow(
                 )
                 isCompleteMarqueeTextLayout(
                     textLength = config.message.length,
+                    expectedLineCount = expectedLineCount,
                     lineCount = result.lineCount,
                     lastLineEnd = if (result.lineCount > 0) {
                         result.getLineEnd(result.lineCount - 1)

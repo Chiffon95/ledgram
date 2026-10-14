@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.ui.theme.LedSurfaceRaised
 
@@ -37,7 +36,6 @@ fun LedPreview(
             marqueeSpeedDpPerSecond =
                 TextGlowEffectDefaults.PREVIEW_MARQUEE_SPEED_DP_PER_SECOND,
             modifier = Modifier.fillMaxSize(),
-            maximumFontSize = 52.sp,
             staticHorizontalPadding = 16.dp,
         )
     }

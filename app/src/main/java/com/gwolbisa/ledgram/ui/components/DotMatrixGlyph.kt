@@ -112,4 +112,4 @@ internal fun interface DotMatrixGlyphProvider {
 }
 
 internal fun splitDotMatrixLines(message: String): List<String> =
-    message.split(delimiters = charArrayOf('\n'), ignoreCase = false, limit = Int.MAX_VALUE)
+    splitExplicitTextLines(message)

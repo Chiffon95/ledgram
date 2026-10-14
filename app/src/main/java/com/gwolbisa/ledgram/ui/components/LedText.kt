@@ -70,6 +70,7 @@ fun LedText(
             if (text.isEmpty()) {
                 maximumFontSize.value
             } else {
+                val expectedLineCount = splitExplicitTextLines(text).size
                 findLargestFittingFontSize(maximumFontSize.value) { candidateSize ->
                     val result = textMeasurer.measure(
                         text = AnnotatedString(text),
@@ -81,7 +82,7 @@ fun LedText(
                             underline = underline,
                         ),
                         overflow = TextOverflow.Clip,
-                        softWrap = true,
+                        softWrap = false,
                         maxLines = Int.MAX_VALUE,
                         constraints = Constraints(
                             maxWidth = availableWidthPx,
@@ -90,6 +91,7 @@ fun LedText(
                     )
                     isCompleteStaticTextLayout(
                         textLength = text.length,
+                        expectedLineCount = expectedLineCount,
                         lineCount = result.lineCount,
                         lastLineEnd = if (result.lineCount > 0) {
                             result.getLineEnd(result.lineCount - 1)
@@ -116,7 +118,7 @@ fun LedText(
                     .padding(horizontal = TextGlyphOverscan),
                 textAlign = TextAlign.Center,
                 maxLines = Int.MAX_VALUE,
-                softWrap = true,
+                softWrap = false,
                 overflow = TextOverflow.Clip,
                 style = ledTextStyle(
                     color = color,

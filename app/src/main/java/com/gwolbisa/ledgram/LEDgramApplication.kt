@@ -1,6 +1,7 @@
 package com.gwolbisa.ledgram
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
 import com.gwolbisa.ledgram.ads.AdsManager
 import com.gwolbisa.ledgram.ads.ConsentManager
 import com.gwolbisa.ledgram.data.MonetizationPreferencesRepository
@@ -12,9 +13,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class LEDgramApplication : Application() {
-    internal val dotMatrixGlyphProvider: PixelFontGlyphProvider by lazy {
-        PixelFontGlyphProvider(this)
-    }
+    internal lateinit var dotMatrixGlyphProvider: PixelFontGlyphProvider
+        private set
     lateinit var consentManager: ConsentManager
         private set
     lateinit var adsManager: AdsManager
@@ -26,6 +26,12 @@ class LEDgramApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Bootstrap AppCompat's locale bridge without changing a System-default selection.
+        AppCompatDelegate.getApplicationLocales()
+        dotMatrixGlyphProvider = PixelFontGlyphProvider(this)
+        applicationScope.launch(Dispatchers.Default) {
+            dotMatrixGlyphProvider.prepare()
+        }
         consentManager = ConsentManager(this)
         adsManager = AdsManager(this)
         monetizationPreferencesRepository = MonetizationPreferencesRepository(this)

@@ -9,21 +9,33 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.gwolbisa.ledgram.LEDgramApplication
+import com.gwolbisa.ledgram.R
 import com.gwolbisa.ledgram.ads.isInterstitialEligible
 import com.gwolbisa.ledgram.data.EditorPreferencesRepository
 import com.gwolbisa.ledgram.model.DisplayConfig
+import com.gwolbisa.ledgram.model.RenderStyle
 import com.gwolbisa.ledgram.ui.display.DisplayActivity
 import com.gwolbisa.ledgram.ui.settings.SettingsActivity
 import com.gwolbisa.ledgram.ui.theme.LEDgramTheme
 import com.gwolbisa.ledgram.util.applyOrientationPolicy
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class EditorActivity : AppCompatActivity() {
+    @Volatile
+    private var initialEditorLayoutReady = false
+    @Volatile
+    private var initialDotMatrixPreviewPrepared = false
     private val editorViewModel: EditorViewModel by viewModels {
         EditorViewModel.Factory(EditorPreferencesRepository(this))
     }
@@ -48,7 +60,27 @@ class EditorActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        splashScreen.setKeepOnScreenCondition { editorViewModel.uiState.value == null }
+        // Once an AppCompat delegate has an Activity context, initialize the API 33+ bridge too.
+        AppCompatDelegate.getApplicationLocales()
+        val previewPlaceholder = getString(R.string.message_placeholder)
+        lifecycleScope.launch(Dispatchers.Default) {
+            try {
+                val initialState = editorViewModel.uiState.filterNotNull().first()
+                if (initialState.renderStyle == RenderStyle.DOT_MATRIX) {
+                    val previewMessage = initialState.toPreviewConfig(previewPlaceholder).message
+                    ledgramApplication.dotMatrixGlyphProvider.prepareGlyphs(previewMessage)
+                }
+            } finally {
+                // Never leave the splash pinned if the verified bundled font cannot be prepared.
+                initialDotMatrixPreviewPrepared = true
+            }
+        }
+        splashScreen.setKeepOnScreenCondition {
+            val state = editorViewModel.uiState.value
+            state == null ||
+                !initialEditorLayoutReady ||
+                state.renderStyle == RenderStyle.DOT_MATRIX && !initialDotMatrixPreviewPrepared
+        }
         applyEditorOrientationPolicy()
         enableEdgeToEdge()
         ledgramApplication.consentManager.requestConsentInfoUpdate(this)
@@ -64,6 +96,9 @@ class EditorActivity : AppCompatActivity() {
                         onStartDisplay = ::openDisplay,
                         onOpenSettings = ::openSettings,
                         showBanner = adsReady,
+                        modifier = Modifier.onGloballyPositioned {
+                            initialEditorLayoutReady = true
+                        },
                     )
                 }
             }

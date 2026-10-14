@@ -13,7 +13,7 @@
 
 - 개발자: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
-- Version: `0.9.4` (`versionCode 13`)
+- Version: `0.9.5` (`versionCode 14`)
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
 
@@ -59,6 +59,7 @@
 - 전체 Editor 앱 바 없이 설정으로 이동할 수 있는 compact 미리보기 header
 
 빈 문구는 미리보기에서만 `Hello!` 표시. 저장값이나 Display에는 들어가지 않음.
+미리보기는 Display와 같은 fitting과 명시적 줄바꿈 규칙을 사용.
 
 ## Display
 
@@ -74,7 +75,7 @@
 ## 여러 줄
 
 - 입력한 줄바꿈 유지
-- Static: 여러 줄 전체가 화면 안에 들어오도록 auto-fit
+- Static: 입력한 줄바꿈만 유지하고 자동 줄바꿈 없이 전체 block을 축소해 fit
 - Marquee: 여러 줄 전체를 하나의 block으로 이동
 - Marquee 줄 내부 자동 줄바꿈 없음
 

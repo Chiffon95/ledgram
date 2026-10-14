@@ -13,7 +13,7 @@ Android LED signboard app for concerts, cheering, events, and quick fullscreen m
 
 - Developer: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
-- Version: `0.9.4` (`versionCode 13`)
+- Version: `0.9.5` (`versionCode 14`)
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
 
@@ -59,6 +59,7 @@ Core features are mostly done. The project is in release-prep.
 - compact Preview header with Settings access; no full Editor app bar
 
 When the message is empty, `Hello!` is shown in Preview only. It is not persisted or sent to Display.
+Preview uses the same fitting and explicit-line semantics as Display.
 
 ## Display
 
@@ -74,7 +75,7 @@ When the message is empty, `Hello!` is shown in Preview only. It is not persiste
 ## Multiline
 
 - explicit line breaks preserved
-- Static: auto-fit the whole multiline block
+- Static: explicit line breaks only; shrink the complete block to fit without automatic wrapping
 - Marquee: move the whole multiline block as one unit
 - no automatic wrapping inside each marquee line
 
