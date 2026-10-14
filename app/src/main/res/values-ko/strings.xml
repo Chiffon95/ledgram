@@ -6,7 +6,7 @@
     <string name="message_placeholder">Hello!</string>
     <string name="character_counter">%1$d / %2$d</string>
     <string name="render_style_label">표현 방식</string>
-    <string name="text_glow">빛나는 글자</string>
+    <string name="text_glow">기본</string>
     <string name="dot_matrix">도트 전광판</string>
     <string name="motion_label">움직임</string>
     <string name="motion_static">고정</string>

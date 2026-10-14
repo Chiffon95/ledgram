@@ -88,8 +88,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun applyLanguage(language: AppLanguage) {
         if (language == appLocaleController.currentLanguage()) return
-        // Let Compose remove the selection dialog before AppCompat dispatches the locale change.
-        window.decorView.post { appLocaleController.applyLanguage(language) }
+        appLocaleController.applyLanguage(language)
     }
 
     private suspend fun resetEditorSettings(): Boolean = try {

@@ -9,8 +9,8 @@ internal const val DOT_MATRIX_NORMAL_RADIUS_RATIO = 0.5f
 internal const val DOT_MATRIX_BOLD_RADIUS_RATIO = 0.57f
 internal const val DOT_MATRIX_BOLD_OVERSCAN_RATIO =
     DOT_MATRIX_BOLD_RADIUS_RATIO - DOT_MATRIX_NORMAL_RADIUS_RATIO
-internal const val DOT_MATRIX_ITALIC_OVERSCAN_RATIO = 1.2f
-internal const val DOT_MATRIX_UNDERLINE_SPACING_RATIO = 0.8f
+internal const val DOT_MATRIX_ITALIC_OVERSCAN_RATIO = 1.8f
+internal const val DOT_MATRIX_UNDERLINE_SPACING_RATIO = 0.3f
 internal const val DOT_MATRIX_UNDERLINE_HEIGHT_RATIO = 1f
 
 internal fun dotMatrixGlyphWidthUnits(glyph: DotMatrixGlyph): Float =
@@ -111,9 +111,13 @@ internal fun createDotMatrixBlockLayout(
         val glyphs = line.codePoints().toArray().map(glyphProvider)
         val underlined = underline && glyphs.isNotEmpty()
         val emptyLineGlyph = if (glyphs.isEmpty()) glyphProvider(' '.code) else null
-        val baselineUnits = glyphs.maxOfOrNull(::dotMatrixGlyphBaselineUnits)
+        // Blank glyphs retain horizontal advance, but do not reintroduce transparent font
+        // line-box padding when the line also contains visible glyphs.
+        val verticalMetricsGlyphs = glyphs.filter(DotMatrixGlyph::hasActivePixels)
+            .ifEmpty { glyphs }
+        val baselineUnits = verticalMetricsGlyphs.maxOfOrNull(::dotMatrixGlyphBaselineUnits)
             ?: dotMatrixGlyphBaselineUnits(requireNotNull(emptyLineGlyph))
-        val descentUnits = glyphs.maxOfOrNull { glyph ->
+        val descentUnits = verticalMetricsGlyphs.maxOfOrNull { glyph ->
             dotMatrixGlyphHeightUnits(glyph) - dotMatrixGlyphBaselineUnits(glyph)
         } ?: (dotMatrixGlyphHeightUnits(requireNotNull(emptyLineGlyph)) - baselineUnits)
         // Empty logical lines use the provider's space line box without adding a visible glyph.

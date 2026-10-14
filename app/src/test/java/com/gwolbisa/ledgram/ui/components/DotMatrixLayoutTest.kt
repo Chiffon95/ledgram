@@ -11,12 +11,19 @@ class DotMatrixLayoutTest {
     private val latinLower = solidGlyph(width = 4, height = 8, baseline = 6)
     private val hangul = solidGlyph(width = 12, height = 16, baseline = 13)
     private val jamo = solidGlyph(width = 8, height = 16, baseline = 13)
+    private val space = DotMatrixGlyph(
+        width = 5,
+        height = 18,
+        rows = List(18) { 0 },
+        baseline = 14,
+    )
 
     private val fakeProvider: (Int) -> DotMatrixGlyph = { codePoint ->
         when (codePoint) {
             in 'A'.code..'Z'.code -> latinUpper
             in 'a'.code..'z'.code -> latinLower
-            in '0'.code..'9'.code, ' '.code, '!'.code, '?'.code -> latinUpper
+            in '0'.code..'9'.code, '!'.code, '?'.code -> latinUpper
+            ' '.code -> space
             in 0xAC00..0xD7A3 -> hangul
             in 0x3131..0x318E, in 0x1100..0x11FF -> jamo
             else -> FALLBACK_GLYPH
@@ -47,6 +54,16 @@ class DotMatrixLayoutTest {
         assertTrue(glyphs.any { it.width == latinLower.width })
         assertTrue(glyphs.any { it.width == hangul.width })
         assertEquals(expectedWidth, layout.widthUnits, 0.0001f)
+    }
+
+    @Test
+    fun `space keeps advance without enlarging visible line bounds`() {
+        val compact = createDotMatrixBlockLayout("aa", fakeProvider)
+        val spaced = createDotMatrixBlockLayout("a a", fakeProvider)
+
+        assertEquals(compact.heightUnits, spaced.heightUnits, 0f)
+        assertTrue(spaced.widthUnits > compact.widthUnits)
+        assertTrue(spaced.lines.single().glyphs[1].rows.all { it == 0 })
     }
 
     @Test
@@ -107,9 +124,24 @@ class DotMatrixLayoutTest {
 
     @Test
     fun `italic slant scales over each glyph row count`() {
+        assertEquals(1.8f, DOT_MATRIX_ITALIC_OVERSCAN_RATIO, 0f)
         listOf(latinLower, hangul, jamo).forEach { glyph ->
             assertEquals(DOT_MATRIX_ITALIC_OVERSCAN_RATIO, dotMatrixItalicOffsetUnits(glyph, 0), 0f)
             assertEquals(0f, dotMatrixItalicOffsetUnits(glyph, glyph.height - 1), 0f)
+        }
+    }
+
+    @Test
+    fun `italic overscan is included in mixed line width`() {
+        listOf("abc", "ABC", "안녕하세요", "LEDgram 최고").forEach { message ->
+            val normal = createDotMatrixBlockLayout(message, fakeProvider)
+            val italic = createDotMatrixBlockLayout(message, fakeProvider, italic = true)
+
+            assertEquals(
+                normal.widthUnits + DOT_MATRIX_ITALIC_OVERSCAN_RATIO,
+                italic.widthUnits,
+                0.0001f,
+            )
         }
     }
 
@@ -119,11 +151,37 @@ class DotMatrixLayoutTest {
         val underlined = createDotMatrixBlockLayout("abc 한글", fakeProvider, underline = true)
 
         assertTrue(underlined.lines.single().underlined)
+        assertEquals(0.3f, DOT_MATRIX_UNDERLINE_SPACING_RATIO, 0f)
         assertEquals(normal.widthUnits, underlined.widthUnits, 0f)
         assertEquals(
             normal.heightUnits + DOT_MATRIX_UNDERLINE_SPACING_RATIO +
                 DOT_MATRIX_UNDERLINE_HEIGHT_RATIO,
             underlined.heightUnits,
+            0.0001f,
+        )
+        assertTrue(
+            underlined.heightUnits <
+                normal.heightUnits + 0.8f + DOT_MATRIX_UNDERLINE_HEIGHT_RATIO,
+        )
+    }
+
+    @Test
+    fun `underline clears cropped descenders Hangul and bold dots`() {
+        val layout = createDotMatrixBlockLayout(
+            "g p q y 한글 abc 한글 gyp",
+            fakeProvider,
+            bold = true,
+            underline = true,
+        )
+        val line = layout.lines.single()
+        val glyphVisualBottom = line.contentHeightUnits +
+            layout.styleGeometry.boldExtraHeightUnits
+        val underlineVisualTop = glyphVisualBottom + DOT_MATRIX_UNDERLINE_SPACING_RATIO
+
+        assertTrue(underlineVisualTop > glyphVisualBottom)
+        assertEquals(
+            DOT_MATRIX_UNDERLINE_SPACING_RATIO,
+            underlineVisualTop - glyphVisualBottom,
             0.0001f,
         )
     }
@@ -142,6 +200,35 @@ class DotMatrixLayoutTest {
         assertTrue(dotSize > 0f)
         assertTrue(layout.widthUnits * dotSize <= 320.0001f)
         assertTrue(layout.heightUnits * dotSize <= 180.0001f)
+    }
+
+    @Test
+    fun `every style combination fits lowercase uppercase Hangul and mixed text`() {
+        val styles = listOf(
+            Triple(false, false, false),
+            Triple(true, false, false),
+            Triple(false, true, false),
+            Triple(false, false, true),
+            Triple(true, true, false),
+            Triple(true, false, true),
+            Triple(false, true, true),
+            Triple(true, true, true),
+        )
+
+        styles.forEach { (bold, italic, underline) ->
+            val layout = createDotMatrixBlockLayout(
+                "abc\nABC\n한글\nLEDgram 최고",
+                fakeProvider,
+                bold = bold,
+                italic = italic,
+                underline = underline,
+            )
+            val dotSize = calculateFittingDotSize(layout, 320f, 180f, fitWidth = true)
+
+            assertTrue(dotSize > 0f)
+            assertTrue(layout.widthUnits * dotSize <= 320.0001f)
+            assertTrue(layout.heightUnits * dotSize <= 180.0001f)
+        }
     }
 
     @Test

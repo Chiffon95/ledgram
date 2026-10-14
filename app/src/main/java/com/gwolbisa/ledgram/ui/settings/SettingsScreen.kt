@@ -28,11 +28,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -65,14 +67,23 @@ internal fun SettingsScreen(
     val coroutineScope = rememberCoroutineScope()
     var showResetDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var pendingLanguage by remember { mutableStateOf<AppLanguage?>(null) }
     val resetSuccessMessage = stringResource(R.string.settings_reset_success)
+
+    LaunchedEffect(pendingLanguage) {
+        val language = pendingLanguage ?: return@LaunchedEffect
+        // Wait until Compose has committed a frame without the dialog before changing locale.
+        withFrameNanos { }
+        onLanguageSelected(language)
+        pendingLanguage = null
+    }
 
     if (showLanguageDialog) {
         LanguageSelectionDialog(
             selectedLanguage = selectedLanguage,
             onLanguageSelected = { language ->
                 showLanguageDialog = false
-                if (language != selectedLanguage) onLanguageSelected(language)
+                if (language != selectedLanguage) pendingLanguage = language
             },
             onDismiss = { showLanguageDialog = false },
         )

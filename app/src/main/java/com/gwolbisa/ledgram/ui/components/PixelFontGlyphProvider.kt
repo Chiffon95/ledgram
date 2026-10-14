@@ -64,18 +64,12 @@ internal class PixelFontGlyphProvider(context: Context) : DotMatrixGlyphProvider
         val pixels = IntArray(width * height)
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
         bitmap.recycle()
-        return DotMatrixGlyph(
+        return croppedAlphaMaskGlyph(
+            pixels = pixels,
             width = width,
             height = height,
-            rows = List(height) { row ->
-                var mask = 0
-                repeat(width) { column ->
-                    val alpha = Color.alpha(pixels[row * width + column])
-                    mask = (mask shl 1) or if (alpha >= ACTIVE_ALPHA_THRESHOLD) 1 else 0
-                }
-                mask
-            },
             baseline = baseline,
+            activeAlphaThreshold = ACTIVE_ALPHA_THRESHOLD,
         )
     }
 

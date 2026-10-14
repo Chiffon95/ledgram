@@ -13,7 +13,7 @@
 
 - 개발자: `Gowl Labs`
 - Package: `com.gwolbisa.ledgram`
-- Version: `0.9.3` (`versionCode 12`)
+- Version: `0.9.4` (`versionCode 13`)
 - minSdk: 24
 - compileSdk / targetSdk: 36 / 36
 
@@ -22,7 +22,7 @@
 핵심 기능은 거의 끝났고 현재 출시 준비 중.
 
 - Editor → fullscreen Display
-- 빛나는 글자 / 도트 전광판
+- 기본 / 도트 전광판
 - Static / 양방향 Marquee
 - Blink / Pulse / Fade
 - 이동 속도 / 효과 속도 실시간 변경
@@ -43,7 +43,7 @@
 - 최근 색상은 세션 단위
 - Bold / Italic / Underline
 - 표현 방식
-  - 빛나는 글자
+  - 기본
   - 도트 전광판
 - 움직임
   - 고정
@@ -80,7 +80,7 @@
 
 ## 표현 방식
 
-### 빛나는 글자
+### 기본
 
 Android system font + fallback 사용.
 
@@ -197,7 +197,7 @@ Google Mobile Ads / Google UMP는 광고와 동의 처리용.
 - 개인정보 선택
 - Editor 설정 초기화
 
-한국어 Editor control은 `미리보기`, `표현 방식`, `빛나는 글자`, `도트 전광판`, `움직임`, `효과`, `이동 속도`, `효과 속도`를 사용. LEDgram, Gowl Labs, Display, HEX, SDK, Google 제품명 같은 제품/기술 용어는 필요한 경우 그대로 유지.
+한국어 Editor control은 `미리보기`, `표현 방식`, `기본`, `도트 전광판`, `움직임`, `효과`, `이동 속도`, `효과 속도`를 사용. LEDgram, Gowl Labs, Display, HEX, SDK, Google 제품명 같은 제품/기술 용어는 필요한 경우 그대로 유지.
 
 ## 기술 스택
 

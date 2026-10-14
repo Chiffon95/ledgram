@@ -76,6 +76,7 @@ fun DisplayScreen(
             modifier = Modifier.fillMaxSize(),
         )
 
+        // Display controls are overlay-only and must never affect renderer bounds.
         AnimatedVisibility(
             visible = controlState.isOverlayVisible,
             enter = fadeIn() + scaleIn(initialScale = 0.85f),
