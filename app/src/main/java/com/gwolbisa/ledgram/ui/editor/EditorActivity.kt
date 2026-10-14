@@ -9,9 +9,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -35,6 +40,7 @@ class EditorActivity : AppCompatActivity() {
     private var initialEditorLayoutReady = false
     @Volatile
     private var initialDotMatrixPreviewPrepared = false
+    private var interstitialPreloadRequest by mutableIntStateOf(0)
     private val editorViewModel: EditorViewModel by viewModels {
         EditorViewModel.Factory(EditorPreferencesRepository(this))
     }
@@ -83,9 +89,18 @@ class EditorActivity : AppCompatActivity() {
         ledgramApplication.consentManager.requestConsentInfoUpdate(this)
 
         setContent {
+            // Locale/layout-direction changes are handled in place and must invalidate resources.
+            LocalConfiguration.current
             LEDgramTheme {
                 val uiState by editorViewModel.uiState.collectAsStateWithLifecycle()
                 val adsReady by ledgramApplication.adsManager.adsReady.collectAsStateWithLifecycle()
+                LaunchedEffect(interstitialPreloadRequest) {
+                    if (interstitialPreloadRequest > 0) {
+                        // Let the resumed Editor commit a frame before starting preload work.
+                        withFrameNanos { }
+                        ledgramApplication.adsManager.preloadInterstitial()
+                    }
+                }
                 uiState?.let { state ->
                     EditorScreen(
                         uiState = state,
@@ -142,7 +157,11 @@ class EditorActivity : AppCompatActivity() {
                     },
                 )
             }
-            ledgramApplication.adsManager.preloadInterstitial()
+            interstitialPreloadRequest = if (interstitialPreloadRequest == Int.MAX_VALUE) {
+                1
+            } else {
+                interstitialPreloadRequest + 1
+            }
         }
     }
 }

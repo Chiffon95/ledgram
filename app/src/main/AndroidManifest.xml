@@ -48,6 +48,7 @@
 
         <activity
             android:name=".ui.editor.EditorActivity"
+            android:configChanges="locale|layoutDirection"
             android:exported="true"
             android:theme="@style/Theme.LEDgram.Splash">
             <intent-filter>

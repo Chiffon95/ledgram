@@ -84,6 +84,7 @@ import kotlin.math.roundToInt
 
 private val EditorContentMaxWidth = 720.dp
 private val EditorPreviewHeight = 180.dp
+private const val EDITOR_BANNER_SLOT_HEIGHT_DP = 50
 private val RecentColorsSaver = listSaver<List<Long>, Long>(
     save = { it },
     restore = { it },
@@ -92,6 +93,29 @@ private val RecentColorsSaver = listSaver<List<Long>, Long>(
 private enum class ColorTarget {
     TEXT,
     BACKGROUND,
+}
+
+internal data class EditorFooterAdLayout(
+    val footerVisible: Boolean,
+    val reservedBannerHeightDp: Int,
+    val showBannerContent: Boolean,
+)
+
+internal fun editorFooterAdLayout(
+    adsReady: Boolean,
+    isKeyboardVisible: Boolean,
+): EditorFooterAdLayout = if (isKeyboardVisible) {
+    EditorFooterAdLayout(
+        footerVisible = false,
+        reservedBannerHeightDp = 0,
+        showBannerContent = false,
+    )
+} else {
+    EditorFooterAdLayout(
+        footerVisible = true,
+        reservedBannerHeightDp = EDITOR_BANNER_SLOT_HEIGHT_DP,
+        showBannerContent = adsReady,
+    )
 }
 
 @Composable
@@ -671,7 +695,8 @@ private fun EditorBottomActions(
 ) {
     val density = LocalDensity.current
     val isKeyboardVisible = WindowInsets.ime.getBottom(density) > 0
-    if (isKeyboardVisible) return
+    val adLayout = editorFooterAdLayout(showBanner, isKeyboardVisible)
+    if (!adLayout.footerVisible) return
 
     Surface(
         modifier = Modifier.navigationBarsPadding(),
@@ -681,7 +706,7 @@ private fun EditorBottomActions(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 12.dp, bottom = if (showBanner) 8.dp else 16.dp),
+                .padding(top = 12.dp, bottom = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
@@ -704,9 +729,16 @@ private fun EditorBottomActions(
                     )
                 }
             }
-            if (showBanner) {
-                Spacer(Modifier.height(8.dp))
-                EditorBannerAd()
+            Spacer(Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(adLayout.reservedBannerHeightDp.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (adLayout.showBannerContent) {
+                    EditorBannerAd()
+                }
             }
         }
     }

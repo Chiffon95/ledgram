@@ -15,8 +15,8 @@ android {
         applicationId = "com.gwolbisa.ledgram"
         minSdk = 24
         targetSdk = 36
-        versionCode = 15
-        versionName = "0.9.6"
+        versionCode = 16
+        versionName = "0.9.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

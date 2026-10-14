@@ -67,12 +67,10 @@ internal class InterstitialController(
 
             override fun onAdDismissedFullScreenContent() {
                 showing = false
-                preload()
             }
 
             override fun onAdFailedToShowFullScreenContent(error: AdError) {
                 showing = false
-                preload()
             }
         }
         return try {
@@ -80,7 +78,6 @@ internal class InterstitialController(
             true
         } catch (_: RuntimeException) {
             showing = false
-            preload()
             false
         }
     }

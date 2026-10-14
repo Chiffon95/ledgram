@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -47,6 +48,8 @@ fun EditorBannerAd(modifier: Modifier = Modifier) {
     }
 
     LaunchedEffect(adView) {
+        // Attach and draw the AndroidView before asking the SDK to begin network/render work.
+        withFrameNanos { }
         try {
             adView.loadAd(AdRequest.Builder().build())
         } catch (_: RuntimeException) {

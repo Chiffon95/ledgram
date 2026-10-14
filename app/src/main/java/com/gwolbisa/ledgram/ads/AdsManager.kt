@@ -28,7 +28,6 @@ class AdsManager(context: Context) {
         }
         if (mobileAdsInitialized) {
             _adsReady.value = true
-            interstitialController.preload()
         } else {
             initializeOnce()
         }
@@ -50,7 +49,6 @@ class AdsManager(context: Context) {
                 mobileAdsInitialized = true
                 if (consentAllowsAds) {
                     _adsReady.value = true
-                    interstitialController.preload()
                 }
             }
         } catch (_: RuntimeException) {
