@@ -2,119 +2,312 @@
 
 # LEDgram
 
-LEDgram은 휴대폰 화면을 콘서트, 응원, 행사 및 간단한 시각 메시지 전달용 맞춤형 전체화면 LED 전광판으로 사용할 수 있게 하는 Android 앱입니다.
+휴대폰 화면을 **콘서트·응원·행사용 LED 전광판**처럼 쓰는 Android 앱입니다.
+
+문구를 입력하고 색상, 표시 방식, 움직임, 효과를 고른 뒤 `전체 화면으로 보기`를 누르면 바로 전광판처럼 사용할 수 있습니다.
 
 - **앱 이름:** LEDgram
-- **패키지:** `com.gwolbisa.ledgram`
 - **개발자:** GWOL LABS
+- **패키지:** `com.gwolbisa.ledgram`
+- **최소 지원:** Android 7.0 / API 24
 
-## 프로젝트 상태
+## 지금 어디까지 됐나
 
-LEDgram은 초기 개발 단계입니다. 현재 마일스톤은 동작 중인 LED 전광판과 동의 기반 AdMob 기반 위에서 앱 내 Settings, 개인정보 보호, 오픈 소스 고지 및 Editor 초기화 환경을 완성합니다.
+핵심 MVP는 거의 끝났습니다.
 
-구현됨:
+- Editor → fullscreen Display 흐름 구현
+- Text + Glow / Dot Matrix 구현
+- Static / 양방향 Marquee 구현
+- Blink / Pulse / Fade 구현
+- Motion Speed / Effect Speed 실시간 변경 구현
+- Dot Matrix Bold / Italic / Underline 구현
+- 색상 선택, HEX 입력, 대비 경고 구현
+- Preferences DataStore 저장/복원 구현
+- Display 최대 밝기 + 화면 꺼짐 방지 + immersive fullscreen 구현
+- Settings / Privacy Policy / Open Source Licenses / Reset 구현
+- Google Mobile Ads + UMP 기반 구현
+- Editor 배너 광고 / Display 종료 후 전면 광고 정책 구현
 
-- 단일 모듈 Android 프로젝트 골격
-- 세로형 Editor → 가로형 전체화면 Display 흐름
-- 고정된 Editor 앱 바와 실시간 미리보기, 독립적으로 스크롤되는 설정 영역, 내비게이션 바와 키보드를 피하는 Start Display 버튼
-- 모든 움직임 + 시각 효과 조합을 재생하는 실시간 미리보기(빈 입력, 공백뿐인 입력 또는 줄바꿈뿐인 입력에는 정규화된 실제 메시지와 전체 화면 보기 상태를 바꾸지 않는 미리보기 전용 `Hello!` 샘플 표시)
-- 움직임(고정, 오른쪽→왼쪽, 왼쪽→오른쪽)과 시각 효과(없음, 깜박임, 숨쉬기, 부드러운 점멸)를 독립적인 레이어로 합성하고, 흐르기 숨쉬기의 크기 변환 기준점을 진행 방향의 앞쪽 가장자리에 맞춰 시각 효과가 이동 경로에 영향을 주지 않는 Text + Glow 및 프로그래밍 방식의 5×7 도트 매트릭스 렌더링
-- 0.25x~5.0x 범위에서 선택하는 독립적인 Motion Speed와 Effect Speed 조절. 두 속도 모두 현재 흐르기 위치 또는 시각 효과 위상을 초기화하지 않고 다음 프레임부터 실행 중인 애니메이션에 적용됨
-- 정적 표시는 사용자가 넣은 모든 줄바꿈을 보존하고 필요하면 자동 줄바꿈하며, 줄 수 제한 없이 가운데 정렬된 전체 여러 줄 문구가 보일 때까지 자동 축소. 흐르기도 명시적인 줄 구조를 보존하고 논리적 각 줄 내부에서는 자동 줄바꿈하지 않으며, 가운데 정렬된 전체 여러 줄 블록을 하나의 단위로 수평 이동
-- 도트 매트릭스는 A–Z(소문자는 대문자로 변환), 숫자, 공백 및 일반 문장부호(`. , ! ? : ; - _ + / \\ ( ) [ ] # @`)를 지원하며, 지원하지 않는 유니코드 코드 포인트는 `?` 대체 글리프로 표시. Text + Glow의 시스템 글꼴 지원에는 영향 없음
-- Dot Matrix는 측정에 포함되는 가로 방향 도트 오프셋으로 굵게를, 행별 기울기 오프셋으로 기울임을, 도트 행으로 밑줄을 지원. 조합된 스타일의 가로 여유와 밑줄 높이는 고정 표시 맞춤 및 흐르기 이동 너비에 모두 반영됨
-- 굵게, 기울임, 밑줄 글자 스타일
-- HSV 슬라이더, HEX 입력, 색상 교환, 대비 경고 및 세션 한정 최근 색상을 지원하는 기본/사용자 지정 글자색·배경색
-- 저장된 여러 줄 메시지, 글자색/배경색, 글자 스타일, 렌더링 스타일, 움직임, 시각 효과, 움직임 속도 및 효과 속도를 앱 재시작 후에도 복원하는 Preferences DataStore 저장 기능. 미리보기 전용 `Hello!` 샘플과 최근 색상은 저장하지 않음
-- 몰입형 Display 모드, 창 최대 밝기 및 화면 켜짐 유지
-- 탭하면 나타나는 Exit 오버레이
-- 앱 정보, 개인정보 및 법적 고지, 데이터 제어 섹션을 갖추고 앱 메타데이터에서 가져온 버전과 GWOL LABS 개발자 브랜드를 표시하는 Settings 화면
-- 주요 오픈소스 라이브러리의 라이선스와 Google 광고/동의 SDK 고지를 구분한 스크롤 화면 및 오프라인 영문/국문 개인정보 처리방침
-- UMP 동의 및 수익화 빈도 상태는 보존하면서 정식 Editor 기본값을 즉시 복원하는 확인 방식의 Editor 설정 초기화
-- Editor의 Start Display 아래에 배치되는 작은 320×50 배너를 포함한 Google Mobile Ads 기반. 키보드가 열리면 하단 영역 전체를 숨기며 Display에는 광고가 없음
-- 앱을 실행할 때마다 UMP 동의 정보를 갱신하고 `canRequestAds()`로 광고 요청을 제한하며, 필요한 경우에만 Settings에 실제 동작하는 Privacy Options 항목을 표시
-- 명시적으로 완료된 Display 세션 5회마다 미리 로드된 전면 광고 표시를 시도하고, 최근 30분 동안 성공적으로 표시된 전면 광고를 최대 2회로 제한. 광고가 없거나 실패해도 Editor 복귀를 방해하지 않음
-- Editor UI 상태와 분리된 Display 종료 횟수 및 최근 전면 광고 표시 시각 2개의 Preferences DataStore 저장
-- 공식 Google Android 테스트 App ID, 배너 ID 및 전면 광고 ID만 사용. 현재 빌드에는 프로덕션 AdMob ID가 없음
-- 광고와 동의 기능은 실패 시 앱 사용을 계속하며 Firebase, 분석, 사용자 지정 텔레메트리, 사용자 식별자 및 메시지 내용 로깅/타겟팅을 포함하지 않음
+현재 빌드는 **Google 공식 테스트 광고 ID만 사용**합니다. 프로덕션 AdMob ID는 아직 넣지 않았습니다.
 
-계획됨:
+## 주요 기능
 
-- 프로덕션 AdMob 계정/앱/광고 단위 구성 및 최종 동의 메시지 설정
-- 앱 내 언어 전환
-- Google Play 프로덕션 게시에 필요한 공개 개인정보 처리방침 URL
+### Editor
 
-## 현재 마일스톤 범위
+- 최대 **100 Unicode code points** 문구 입력
+- 사용자가 넣은 줄바꿈 그대로 저장
+- Text Color / Background Color 선택
+- 기본 색상 + HSV + HEX 직접 입력
+- 색상 교환
+- 저대비 색상 경고
+- 최근 색상은 현재 세션에서만 유지
+- Bold / Italic / Underline
+- Render Style 선택
+  - `Text + Glow`
+  - `Dot Matrix`
+- Motion 선택
+  - 고정
+  - 오른쪽 → 왼쪽
+  - 왼쪽 → 오른쪽
+- Effect 선택
+  - 없음
+  - 깜박임
+  - 숨쉬기
+  - 부드러운 점멸
+- Motion Speed / Effect Speed 각각 `0.25x ~ 5.0x`
+- 상단 Live Preview에서 실제 Display 결과 미리보기
 
-현재 MVP는 명시적인 줄바꿈을 개수 제한 없이 포함할 수 있는 100 유니코드 코드 포인트 메시지 편집, 색상과 글자 스타일 선택, Editor 미리보기 및 가로형 전체화면 표시에서 Text + Glow 또는 Dot Matrix 선택을 지원합니다. 고정 또는 양방향 흐르기 Motion은 없음·깜박임·숨쉬기·부드러운 점멸 Effect와 독립적으로 조합됩니다. 두 렌더링 스타일은 흐르기 진행률과 시각 효과 위상을 위한 별도 프레임 클록을 사용합니다. Motion Speed를 바꾸면 정규화된 현재 흐르기 위치를 초기화하지 않고 다음 프레임부터 이동량이 달라지며, Effect Speed도 현재 알파와 크기 위상을 유지합니다. 방향 또는 메시지가 바뀌면 흐르기 진행률을 초기화할 수 있지만 화면 너비, 측정 너비, 색상, 스타일 형상 및 두 속도 변경은 초기화하지 않습니다. 흐르기 중 숨쉬기 크기 변화는 진행 방향의 앞쪽 가장자리를 기준으로 유지됩니다. Motion Speed와 Effect Speed는 서로 독립적인 0.25x~5.0x 조절 항목입니다. Text + Glow 고정 표시는 모든 명시적 줄바꿈을 보존하고 필요하면 자동 줄바꿈하며 전체 블록을 가운데 맞춰 축소합니다. 흐르기도 명시적 줄을 보존하고 논리적 줄 내부의 자동 줄바꿈을 끄며 세로 영역에 맞춘 모든 줄을 함께 이동합니다. Dot Matrix는 프로그래밍 방식의 5×7 글리프 격자와 같은 여러 줄 블록 규칙을 사용합니다. 고정 표시는 가로·세로에 맞추고, 흐르기는 세로에 맞춘 뒤 스타일이 반영된 안정적인 비확대 블록 너비를 이동에 사용합니다. 굵게는 가로 방향 도트 오프셋, 기울임은 측정된 행별 기울기, 밑줄은 비어 있지 않은 각 논리적 줄 아래의 간격 있는 도트 행으로 표현되며 모든 조합이 맞춤과 이동 형상에 반영됩니다. 지원 문자는 A–Z, 대문자로 매핑되는 a–z, 0–9, 공백 및 일반 문장부호이며 지원하지 않는 코드 포인트는 `?`로 표시합니다. Preferences DataStore는 메시지, 색상, 글자 스타일, Render Style, Motion/Effect 선택 및 두 속도를 앱 재시작 후에도 복원합니다. 한국어 UI는 핵심 제품 라벨인 Render Style, Text + Glow, Dot Matrix, Motion, Effect, Motion Speed, Effect Speed를 의도적으로 영어로 유지하고 설명형 선택지와 동작은 자연스러운 한국어로 제공합니다. 빈 입력 또는 공백뿐인 입력에는 Editor 메시지를 바꾸거나 저장하지 않고 `DisplayConfig`에도 들어가지 않으며 전체 화면 보기를 활성화하지 않는 미리보기 전용 `Hello!` 샘플이 표시됩니다. 최근 색상은 계속 현재 세션에서만 유지됩니다. Settings에는 시스템 기본 언어, 앱 버전과 GWOL LABS 개발자 브랜드가 표시됩니다. 개인정보 처리방침, 주요 오픈소스 라이브러리 라이선스 및 별도의 Third-party SDKs 고지는 현재 시스템 언어로 완전히 오프라인에서 열립니다. Editor 설정 초기화는 Editor 환경설정 키만 지우고 실행 중인 Editor를 새 설치 기본값으로 즉시 되돌리며, UMP 동의와 Display 종료 횟수/전면 광고 시각은 그대로 유지합니다.
+빈 문구일 때 Preview에는 `Hello!`가 보이지만, 실제 Editor 값에는 저장되지 않고 fullscreen Display도 실행되지 않습니다.
 
-수익화 기능은 핵심 Display 환경과 분리됩니다. UMP는 앱 실행 시 동의 정보를 갱신하고 UMP가 광고 요청을 허용할 때만 광고 SDK를 초기화합니다. Editor에서만 Start Display 아래에 가운데 정렬된 320×50 배너를 표시하며, 키보드가 열리면 두 요소를 모두 숨깁니다. Display는 실제 Exit 또는 Back 동작에만 명시적인 완료 결과를 반환하며, 결과 하나당 저장된 카운터를 정확히 한 번 늘립니다. 종료 5회째부터 최근 30분 동안 성공적으로 표시된 전면 광고가 2회 미만이고 광고가 미리 로드되어 있을 때만 Editor에서 표시할 수 있습니다. `onAdShowedFullScreenContent`가 호출되면 종료 카운터를 초기화하고 시각을 기록하며, 로드 실패·광고 없음·표시 실패 시 카운터를 유지합니다. Display에는 배너, 전면 광고 트리거 또는 동의 양식이 없습니다. Privacy Options는 UMP가 요구할 때만 Settings에 나타납니다. 모든 광고 경로는 실패 시 앱 사용을 계속하고 메시지 텍스트를 SDK에 제공하지 않습니다.
+### Display
+
+- 휴대폰 화면 전체를 전광판처럼 사용
+- 일반 폰에서는 landscape 고정
+- `sw600dp+` 대화면에서는 Android 정책에 맞춰 현재 window에 adaptive 대응
+- 상태바 / 내비게이션바 숨김
+- Window 밝기 최대 적용
+- 화면 꺼짐 방지
+- 화면 탭 시 Exit UI 표시
+- **Display 안에는 광고 없음**
+
+### 여러 줄 문구
+
+Static과 Marquee 모두 사용자가 입력한 줄바꿈을 유지합니다.
+
+- **Static:** 전체 여러 줄 블록이 화면 안에 들어오도록 자동 축소
+- **Marquee:** 각 줄이 따로 움직이지 않고 여러 줄 전체가 하나의 블록으로 이동
+- Marquee에서는 줄 내부 자동 줄바꿈 없이 사용자가 입력한 줄 구조를 그대로 사용
+
+### Text + Glow
+
+Android 시스템 폰트와 fallback을 사용합니다.
+
+한글·영문·기타 Unicode는 시스템 폰트가 지원하는 범위에서 그대로 표시됩니다.
+
+### Dot Matrix
+
+프로그래밍 방식의 5×7 glyph를 사용합니다.
+
+지원:
+
+- A–Z
+- a–z → 대문자로 변환
+- 0–9
+- 공백
+- 일반 문장부호: `. , ! ? : ; - _ + / \\ ( ) [ ] # @`
+
+지원하지 않는 문자는 `?` glyph로 표시합니다.
+
+Dot Matrix에서도 다음 스타일을 사용할 수 있습니다.
+
+- **Bold:** 활성 dot을 가로 방향으로 확장
+- **Italic:** 행별 X offset으로 기울임
+- **Underline:** 글자 아래 dot row 추가
+
+스타일 때문에 늘어난 실제 폭/높이도 Static fitting과 Marquee 이동거리에 반영됩니다.
+
+## 애니메이션 동작
+
+Motion과 Effect는 서로 독립적으로 동작합니다.
+
+예를 들어:
+
+- 오른쪽 → 왼쪽 + 숨쉬기
+- 왼쪽 → 오른쪽 + 깜박임
+- 고정 + 부드러운 점멸
+
+모두 가능합니다.
+
+### 속도 변경
+
+실행 중에도 속도를 바꿀 수 있습니다.
+
+- Motion Speed 변경 → 현재 Marquee 위치를 유지한 채 다음 프레임부터 새 속도 적용
+- Effect Speed 변경 → 현재 Blink/Pulse/Fade 위상을 유지한 채 다음 프레임부터 새 속도 적용
+
+속도를 바꿨다고 애니메이션이 처음 위치로 돌아가지 않습니다.
+
+## 저장되는 값
+
+Preferences DataStore에 저장합니다.
+
+Editor 설정:
+
+- 문구
+- 글자색 / 배경색
+- Bold / Italic / Underline
+- Render Style
+- Motion / Effect
+- Motion Speed / Effect Speed
+
+광고 정책용 로컬 상태:
+
+- Display 종료 횟수
+- 최근 전면 광고 표시 시각 2개
+
+`Editor 설정 초기화`는 **Editor 설정만 초기화**합니다.
+
+다음은 초기화하지 않습니다.
+
+- Google UMP 동의 상태
+- Display 종료 횟수
+- 전면 광고 frequency 상태
+
+## 광고 정책
+
+현재 정책은 단순하게 잡았습니다.
+
+### Banner
+
+- Editor의 `전체 화면으로 보기` 버튼 아래에 320×50 배너
+- 키보드가 열리면 버튼 + 배너 영역 전체 숨김
+- Display에는 배너 없음
+
+### Interstitial
+
+- Display를 실제로 종료하고 Editor로 돌아온 횟수를 카운트
+- **5회마다 전면 광고 후보**
+- 최근 30분 동안 성공적으로 표시된 전면 광고는 **최대 2회**
+- 광고가 없거나 로드/표시에 실패하면 앱 사용을 막지 않음
+- 실제 광고가 표시된 경우에만 종료 카운터 초기화
+
+## 개인정보 / 법적 정보
+
+Settings에서 앱 안에서 바로 확인할 수 있습니다.
+
+- Privacy Policy
+- Open Source Licenses
+- Third-party SDKs
+- Privacy Options — UMP가 필요한 경우에만 표시
+
+현재 앱은:
+
+- 사용자 계정 없음
+- 사용자 콘텐츠용 backend/server 없음
+- Firebase Analytics 없음
+- Crashlytics 없음
+- 자체 telemetry 없음
+- 입력한 LED 문구를 GWOL LABS 서버로 업로드하지 않음
+
+Google Mobile Ads와 Google UMP는 광고/동의 처리를 위해 포함되어 있으며, Google 쪽 SDK는 Google의 관련 정책과 약관이 적용됩니다.
+
+## Settings
+
+현재 제공:
+
+- LEDgram 앱 정보
+- 실제 `versionName`
+- Developer: `GWOL LABS`
+- 시스템 기본 언어 안내
+- Privacy Policy
+- Open Source Licenses
+- 조건부 Privacy Options
+- Editor 설정 초기화
+
+한국어 UI에서도 제품/기술 라벨은 필요 이상으로 번역하지 않습니다.
+
+예:
+
+`Render Style`, `Text + Glow`, `Dot Matrix`, `Motion`, `Effect`, `Motion Speed`, `Effect Speed`
+
+설명이나 사용자 동작은 자연스러운 한국어를 사용합니다.
 
 ## 기술 스택
 
-- Android Gradle Plugin 9.4.1
-- Gradle 9.8.0
-- Kotlin 2.4.21
-- Jetpack Compose 및 Material 3
-- Editor, Display, Settings, 개인정보 처리방침 및 오픈 소스 라이선스를 위한 Compose 기반 Android Activity
-- 버전 카탈로그를 사용하는 Gradle Kotlin DSL
-- AndroidX Core SplashScreen
-- AndroidX Preferences DataStore 1.2.1
-- AndroidX Lifecycle 2.10.0
-- Google Mobile Ads SDK 25.5.0
-- Google UMP SDK 4.0.0
-- minSdk 24, compileSdk 36, targetSdk 36
-- JDK/JVM 17
+| 항목 | 버전 / 구성 |
+| --- | --- |
+| Android Gradle Plugin | 9.4.1 |
+| Gradle | 9.8.0 |
+| Kotlin | 2.4.21 |
+| JDK / JVM | 17 |
+| minSdk | 24 |
+| compileSdk / targetSdk | 36 / 36 |
+| UI | Jetpack Compose + Material 3 |
+| Local storage | Preferences DataStore 1.2.1 |
+| Lifecycle | AndroidX Lifecycle 2.10.0 |
+| Ads | Google Mobile Ads SDK 25.5.0 |
+| Consent | Google UMP SDK 4.0.0 |
+
+AGP 9의 built-in Kotlin을 사용합니다. `org.jetbrains.kotlin.android` 플러그인은 추가하지 않습니다.
 
 ## 프로젝트 구조
 
 ```text
 app/src/main/java/com/gwolbisa/ledgram/
-├── ads/            # 동의, 테스트 광고 로드, 전면 광고 정책 및 배너 연동
-├── data/           # Preferences DataStore 매핑 및 저장소
-├── model/          # Parcelable 표시 설정 및 enum
+├── ads/            # UMP, banner, interstitial, 광고 정책
+├── data/           # Preferences DataStore / repository
+├── model/          # DisplayConfig / enums
 ├── ui/
-│   ├── components/ # 공유 LED 미리보기/텍스트 렌더링
-│   ├── display/    # 가로형 전체화면 표시
-│   ├── editor/     # 세로형 메시지 편집기
-│   ├── settings/   # 앱 정보, 로컬 법적 고지 화면 및 범위가 분리된 Editor 초기화
-│   └── theme/      # Material 테마 및 브랜드 색상
-└── util/           # 메시지, 색상, 대비 및 최근 색상 유틸리티
+│   ├── components/ # 공용 LED renderer / preview
+│   ├── display/    # fullscreen Display
+│   ├── editor/     # Editor
+│   ├── settings/   # Settings / Privacy / OSS notices
+│   └── theme/      # Material theme / brand colors
+└── util/           # message / color / speed helpers
 ```
-
-## 요구 사항
-
-- Android SDK Platform 36이 설치된 Android Studio
-- JDK 17
-- Android 7.0(API 24) 이상을 실행하는 Android 기기 또는 에뮬레이터
 
 ## 로컬 빌드
 
-저장소 루트에서 다음 명령을 실행합니다.
+필요 환경:
+
+- Android Studio
+- Android SDK Platform 36
+- JDK 17
+- Android 7.0(API 24) 이상 기기 또는 emulator
 
 ```bash
-./gradlew assembleDebug
-./gradlew testDebugUnitTest
+./gradlew clean assembleDebug
+./gradlew test
+```
+
+추가 확인이 필요하면:
+
+```bash
 ./gradlew lintDebug
 ```
 
-디버그 APK는 `app/build/outputs/apk/debug/` 아래에 생성되며 Git에서 제외됩니다.
+Debug APK:
 
-## 개발 워크플로
+```text
+app/build/outputs/apk/debug/
+```
 
-1. `main`에서 목적이 명확한 브랜치를 만듭니다.
-2. 마일스톤 변경을 작게 유지하고 추측성 인프라를 추가하지 않습니다.
-3. 리뷰 요청 전에 빌드, 단위 테스트 및 lint를 실행합니다.
-4. diff를 검토하고 기기 또는 에뮬레이터에서 Editor → Display 흐름을 확인합니다.
-5. 로컬 SDK 경로, 서명 파일, 자격 증명 또는 생성된 바이너리를 커밋하지 않습니다.
+## 개발 방식
 
-## 테스트 광고, 개인정보 보호 및 분석
+이 프로젝트는 기능을 한 번에 크게 넣기보다 작은 단위로 구현하고 바로 검증하는 식으로 진행합니다.
 
-**현재 빌드는 Google 테스트 광고 ID를 사용합니다.** 프로덕션 AdMob ID는 아직 구성되지 않았습니다. 프로덕션 출시 전 테스트 App ID와 두 테스트 광고 단위 ID 전체를 프로덕션 AdMob 앱의 값으로 교체해야 하며, 프로덕션 App ID와 테스트 광고 단위 ID를 실수로 혼용하지 않아야 합니다. 이와 함께 UMP 동의 메시지를 구성하고 검증해야 합니다.
+1. 요구사항 확정
+2. Codex로 구현
+3. `git status` / `git diff` 확인
+4. build / test
+5. 실제 기기 확인
+6. commit / push
+7. 다음 기능 진행
 
-앱은 Google Mobile Ads와 UMP를 포함하지만 Firebase Analytics, Crashlytics, 사용자 지정 추적, 텔레메트리 또는 클라우드 업로드를 포함하지 않습니다. Preferences DataStore에는 로컬 Editor 설정과 Display 종료 횟수, 최근 전면 광고 시각 2개를 저장합니다. LEDgram은 광고 또는 분석을 위해 사용자가 입력한 메시지를 직접 전송하거나 로그로 남기지 않습니다. SDK 또는 네트워크가 실패해도 편집, 미리보기, Display 및 설정 저장을 차단하지 않습니다. 현지화된 개인정보 처리방침은 앱 안에서 제공하지만 Google Play 프로덕션 게시에는 공개 개인정보 처리방침 URL이 별도로 필요하며, 해당 URL은 아직 구성되지 않았습니다.
+## 출시 전에 남은 것
 
-## 라이선스
+핵심 앱 기능보다 **출시 준비 작업**이 남아 있습니다.
 
-아직 오픈 소스 라이선스를 선택하지 않았습니다. 추후 라이선스가 추가되기 전까지 모든 권리를 보유합니다.
+- 앱 아이콘 / Splash / 최종 브랜딩
+- 프로덕션 AdMob App ID / ad unit ID 적용
+- UMP 프로덕션 consent message 구성
+- Google Play용 공개 Privacy Policy URL
+- release signing / AAB
+- Play Console 등록 정보와 스토어 이미지
+- 최종 실기기 regression test
 
+앱 내 언어 전환은 현재 필수 MVP에서는 제외되어 있고, 이후 필요하면 추가할 예정입니다.
+
+## 광고 테스트 주의
+
+**현재 repository의 광고 ID는 전부 Google 공식 TEST ID입니다.**
+
+프로덕션 출시 전에는 App ID와 banner/interstitial ad unit ID를 한 세트로 실제 AdMob 값으로 바꿔야 합니다.
+
+테스트 ID와 프로덕션 ID를 섞어서 쓰지 않습니다.
+
+## License
+
+현재 LEDgram 자체의 오픈소스 라이선스는 별도로 선택하지 않았습니다.
+
+별도 라이선스를 추가하기 전까지는 All rights reserved입니다.
