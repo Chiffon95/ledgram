@@ -98,10 +98,17 @@ Recommended launch order: Editor overview, Text + Glow, Dot Matrix, motion/effec
 - **Screenshots:** At least 2 are required across supported device types; use at least 4 high-quality captures for this listing. Screenshots must be JPEG or 24-bit PNG without alpha, with each dimension from 320 px to 3,840 px and the longer dimension no more than twice the shorter dimension.
 - All screenshots and graphics must accurately reflect the released app and must not imply unsupported functionality.
 
+## Finalized graphic assets
+
+- Approved icon source: `assets/LEDgram_icon.png`
+- Google Play icon: `assets/LEDgram_icon_512.png`
+- Approved feature graphic source: `assets/LEDgram_feature.png`
+- Google Play feature graphic: `assets/LEDgram_feature_1024x500.png`
+
+The approved source files are preserved unchanged. The exported assets use the required dimensions, retain the original aspect ratio, and use the artwork's matching black background.
+
 ## Remaining asset work
 
-- Export the final 512×512 store icon from the approved LEDgram artwork.
-- Create the 1024×500 feature graphic using approved branding and actual app presentation.
 - Capture the planned screenshots from the running release-equivalent Android app.
 - Prepare localized Korean and English screenshot sets if text or captions are added to the assets.
 - Review every asset at phone size before upload and confirm it matches the submitted build.
