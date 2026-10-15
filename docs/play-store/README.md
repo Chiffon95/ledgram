@@ -91,6 +91,33 @@ Capture screenshots from the actual Android app. Do not use mockups that show co
 
 Recommended launch order: Editor overview, Text + Glow, Dot Matrix, motion/effect controls, custom colors, multiline display. Capture all six if possible; use at least the first four high-quality captures.
 
+### Captured Korean screenshots
+
+These screenshots were captured from the unmodified `0.9.8` (`versionCode 17`) app on a physical Korean-language Android device. System bars and the Editor test-ad area were cropped where needed; no UI content was composited, stretched, or recreated.
+
+| Order | Screenshot | Dimensions | Captured state |
+| --- | --- | ---: | --- |
+| 1 | [`screenshots/ko/01-editor-overview.png`](screenshots/ko/01-editor-overview.png) | 1080×1950 | Editor overview with `LEDgram` |
+| 2 | [`screenshots/ko/02-text-glow.png`](screenshots/ko/02-text-glow.png) | 2160×1080 | Fullscreen Text + Glow with `LEDgram` |
+| 3 | [`screenshots/ko/03-dot-matrix.png`](screenshots/ko/03-dot-matrix.png) | 2160×1080 | Fullscreen Dot Matrix with `응원해요!` |
+| 4 | [`screenshots/ko/04-motion-effects.png`](screenshots/ko/04-motion-effects.png) | 1080×1720 | Bidirectional motion, Pulse, and separate speed controls |
+| 5 | [`screenshots/ko/05-custom-colors.png`](screenshots/ko/05-custom-colors.png) | 1080×1850 | Custom color dialog with an actual orange selection |
+| 6 | [`screenshots/ko/06-multiline.png`](screenshots/ko/06-multiline.png) | 2160×1080 | Fullscreen Text + Glow with `오늘도\n화이팅!` |
+
+### Reproducible capture workflow
+
+1. Connect a physical Android device or start an emulator, then select it from `adb devices -l`.
+2. Install and launch the release-equivalent app. Use Korean as the system/app language for this set.
+3. Configure each state through the real Editor UI. For Hangul on devices where `adb shell input text` cannot emit Korean, enter the message with the device keyboard before capture.
+4. Capture the current screen without browser or desktop tooling:
+
+   ```sh
+   adb -s "$SERIAL" exec-out screencap -p > screenshot-raw.png
+   ```
+
+5. Crop only system bars, navigation controls, or the Editor test-ad area. Do not resize, stretch, composite, or add UI.
+6. Export as 24-bit RGB PNG and verify dimensions, aspect ratio, readability, and absence of personal information or unrelated overlays.
+
 ## Google Play graphic requirements
 
 - **Store icon:** 512×512, 32-bit PNG with alpha, maximum 1 MB.
@@ -109,9 +136,9 @@ The approved source files are preserved unchanged. The exported assets use the r
 
 ## Remaining asset work
 
-- Capture the planned screenshots from the running release-equivalent Android app.
-- Prepare localized Korean and English screenshot sets if text or captions are added to the assets.
-- Review every asset at phone size before upload and confirm it matches the submitted build.
+- No additional manual capture is required for the Korean screenshot set.
+- Capture a separate English set only if an English-localized screenshot listing is desired; do not translate or edit the Korean captures.
+- Before Play Console upload, review the final assets once more against the exact submitted build.
 
 Requirements checked against Google Play Console Help:
 
