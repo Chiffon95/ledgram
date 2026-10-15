@@ -28,7 +28,7 @@ internal class InterstitialController(
         try {
             InterstitialAd.load(
                 applicationContext,
-                applicationContext.getString(AdConfig.TEST_INTERSTITIAL_ID),
+                applicationContext.getString(AdConfig.INTERSTITIAL_ID),
                 AdRequest.Builder().build(),
                 object : InterstitialAdLoadCallback() {
                     override fun onAdLoaded(ad: InterstitialAd) {

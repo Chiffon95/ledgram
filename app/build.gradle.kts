@@ -34,6 +34,13 @@ val releaseStoreFile = releaseSigningProperties.getProperty("storeFile")
         if (configuredFile.isAbsolute) configuredFile else rootProject.file(configuredFile.path)
     }
 
+val admobTestDeviceIds = providers.gradleProperty("ledgram.admob.testDeviceIds")
+    .orElse(providers.environmentVariable("LEDGRAM_ADMOB_TEST_DEVICE_IDS"))
+    .getOrElse("")
+val admobTestDeviceIdsBuildConfigValue = admobTestDeviceIds
+    .replace("\\", "\\\\")
+    .replace("\"", "\\\"")
+
 android {
     namespace = "com.gwolbisa.ledgram"
     compileSdk = 36
@@ -42,8 +49,15 @@ android {
         applicationId = "com.gwolbisa.ledgram"
         minSdk = 24
         targetSdk = 36
-        versionCode = 17
-        versionName = "0.9.8"
+        versionCode = 18
+        versionName = "0.9.9"
+
+        // Configure hashed test-device IDs outside the repository for release-equivalent testing.
+        buildConfigField(
+            "String",
+            "ADMOB_TEST_DEVICE_IDS",
+            "\"$admobTestDeviceIdsBuildConfigValue\"",
+        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -11,10 +11,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LEDgram">
 
-        <!-- Official Google sample AdMob app ID. Replace before production release. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="@string/google_test_admob_app_id" />
+            android:value="@string/admob_app_id" />
 
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"

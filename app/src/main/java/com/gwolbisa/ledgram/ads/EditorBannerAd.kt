@@ -28,7 +28,7 @@ fun EditorBannerAd(modifier: Modifier = Modifier) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val adView = remember(context) {
         AdView(context).apply {
-            adUnitId = context.getString(AdConfig.TEST_BANNER_ID)
+            adUnitId = context.getString(AdConfig.BANNER_ID)
             setAdSize(AdSize.BANNER)
             logBannerLifecycle("create", this)
         }

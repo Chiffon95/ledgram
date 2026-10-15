@@ -2,6 +2,7 @@ package com.gwolbisa.ledgram.ads
 
 import android.app.Activity
 import android.content.Context
+import com.gwolbisa.ledgram.BuildConfig
 import com.google.android.gms.ads.MobileAds
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +47,7 @@ class AdsManager(context: Context) {
     private fun initializeOnce() {
         if (!initializationStarted.compareAndSet(false, true)) return
         try {
+            configureTestDevices()
             MobileAds.initialize(applicationContext) {
                 mobileAdsInitialized = true
                 if (consentAllowsAds) {
@@ -57,4 +59,21 @@ class AdsManager(context: Context) {
             _adsReady.value = false
         }
     }
+
+    private fun configureTestDevices() {
+        val testDeviceIds = parseTestDeviceIds(BuildConfig.ADMOB_TEST_DEVICE_IDS)
+        if (testDeviceIds.isEmpty()) return
+        MobileAds.setRequestConfiguration(
+            MobileAds.getRequestConfiguration()
+                .toBuilder()
+                .setTestDeviceIds(testDeviceIds)
+                .build(),
+        )
+    }
 }
+
+internal fun parseTestDeviceIds(configuredIds: String): List<String> = configuredIds
+    .split(',')
+    .map(String::trim)
+    .filter(String::isNotEmpty)
+    .distinct()

@@ -4,10 +4,10 @@ import androidx.annotation.StringRes
 import com.gwolbisa.ledgram.R
 
 internal object AdConfig {
-    // These resource IDs resolve only to the official Google Android test IDs.
+    // Debug resource overlays resolve these to Google's official Android sample IDs.
     @StringRes
-    val TEST_BANNER_ID = R.string.google_test_banner_id
+    val BANNER_ID = R.string.admob_banner_id
 
     @StringRes
-    val TEST_INTERSTITIAL_ID = R.string.google_test_interstitial_id
+    val INTERSTITIAL_ID = R.string.admob_interstitial_id
 }
