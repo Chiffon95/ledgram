@@ -5,6 +5,7 @@
 
 # Local SDK configuration
 local.properties
+ump-debug.properties
 
 # Android Studio / IntelliJ
 .idea/

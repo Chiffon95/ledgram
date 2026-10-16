@@ -1,0 +1,9 @@
+# Copy this file to ump-debug.properties. The destination is ignored by Git.
+# Use the UMP test device hash printed by the UMP SDK, not an AdMob test device ID.
+testDeviceId=
+
+# Supported values: DISABLED, EEA, US
+geography=DISABLED
+
+# When true, the debug build resets UMP state once per app process before requesting consent.
+resetConsentOnLaunch=false

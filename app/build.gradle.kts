@@ -41,6 +41,34 @@ val admobTestDeviceIdsBuildConfigValue = admobTestDeviceIds
     .replace("\\", "\\\\")
     .replace("\"", "\\\"")
 
+val umpDebugPropertiesFile = rootProject.file("ump-debug.properties")
+val umpDebugProperties = Properties().apply {
+    if (umpDebugPropertiesFile.isFile) {
+        umpDebugPropertiesFile.inputStream().use(::load)
+    }
+}
+val umpTestDeviceId = umpDebugProperties.getProperty("testDeviceId", "").trim()
+val umpDebugGeography = umpDebugProperties.getProperty("geography", "DISABLED")
+    .trim()
+    .uppercase()
+val umpResetConsentOnLaunch = umpDebugProperties
+    .getProperty("resetConsentOnLaunch", "false")
+    .trim()
+    .toBooleanStrictOrNull()
+    ?: throw GradleException("resetConsentOnLaunch in ump-debug.properties must be true or false.")
+val supportedUmpDebugGeographies = setOf("DISABLED", "EEA", "US")
+if (umpDebugGeography !in supportedUmpDebugGeographies) {
+    throw GradleException(
+        "geography in ump-debug.properties must be one of: " +
+            supportedUmpDebugGeographies.joinToString(),
+    )
+}
+if (umpDebugGeography != "DISABLED" && !umpTestDeviceId.matches(Regex("[0-9A-Fa-f]{32}"))) {
+    throw GradleException(
+        "A 32-character UMP test device hash is required when debug geography is enabled.",
+    )
+}
+
 android {
     namespace = "com.gwolbisa.ledgram"
     compileSdk = 36
@@ -74,6 +102,15 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "UMP_TEST_DEVICE_ID", "\"$umpTestDeviceId\"")
+            buildConfigField("String", "UMP_DEBUG_GEOGRAPHY", "\"$umpDebugGeography\"")
+            buildConfigField(
+                "boolean",
+                "UMP_RESET_CONSENT_ON_LAUNCH",
+                umpResetConsentOnLaunch.toString(),
+            )
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

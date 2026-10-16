@@ -10,8 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class ConsentManager(context: Context) {
+    private val applicationContext = context.applicationContext
     private val consentInformation =
-        UserMessagingPlatform.getConsentInformation(context.applicationContext)
+        UserMessagingPlatform.getConsentInformation(applicationContext)
 
     private val _canRequestAds = MutableStateFlow(consentInformation.canRequestAds())
     val canRequestAds: StateFlow<Boolean> = _canRequestAds.asStateFlow()
@@ -24,7 +25,13 @@ class ConsentManager(context: Context) {
     fun requestConsentInfoUpdate(activity: Activity) {
         if (updateInProgress) return
         updateInProgress = true
-        val requestParameters = ConsentRequestParameters.Builder().build()
+        val requestParametersBuilder = ConsentRequestParameters.Builder()
+        UmpDebugSupport.applyBeforeConsentInfoUpdate(
+            context = applicationContext,
+            consentInformation = consentInformation,
+            requestParametersBuilder = requestParametersBuilder,
+        )
+        val requestParameters = requestParametersBuilder.build()
         try {
             consentInformation.requestConsentInfoUpdate(
                 activity,
