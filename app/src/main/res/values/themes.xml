@@ -5,16 +5,12 @@
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowBackground">@color/ledgram_black</item>
         <item name="android:colorAccent">@color/ledgram_amber</item>
-        <item name="android:navigationBarColor">@android:color/black</item>
-        <item name="android:statusBarColor">@color/ledgram_black</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
 
     <!-- Matches the Compose Settings surface if AppCompat exposes a transition frame. -->
     <style name="Theme.LEDgram.Settings" parent="Theme.LEDgram">
         <item name="android:windowBackground">@color/ledgram_surface</item>
-        <item name="android:navigationBarColor">@color/ledgram_surface</item>
-        <item name="android:statusBarColor">@color/ledgram_surface</item>
     </style>
 
     <style name="Theme.LEDgram.Splash" parent="Theme.SplashScreen">

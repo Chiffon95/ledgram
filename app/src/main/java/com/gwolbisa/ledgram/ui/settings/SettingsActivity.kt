@@ -8,7 +8,6 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalConfiguration
@@ -17,6 +16,7 @@ import com.gwolbisa.ledgram.LEDgramApplication
 import com.gwolbisa.ledgram.data.EditorPreferencesRepository
 import com.gwolbisa.ledgram.ui.theme.LEDgramTheme
 import com.gwolbisa.ledgram.util.applyOrientationPolicy
+import com.gwolbisa.ledgram.util.enableLedgramEdgeToEdge
 import kotlinx.coroutines.CancellationException
 
 class SettingsActivity : AppCompatActivity() {
@@ -28,7 +28,7 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         applySettingsOrientationPolicy()
-        enableEdgeToEdge()
+        enableLedgramEdgeToEdge()
 
         setContent {
             // Settings handles locale changes in place. Reading this state invalidates the

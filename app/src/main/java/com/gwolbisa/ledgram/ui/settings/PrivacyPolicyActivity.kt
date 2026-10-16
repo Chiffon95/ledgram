@@ -4,7 +4,6 @@ import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -21,12 +20,13 @@ import com.gwolbisa.ledgram.ui.theme.LEDgramTheme
 import com.gwolbisa.ledgram.ui.theme.LedAmber
 import com.gwolbisa.ledgram.ui.theme.LedMuted
 import com.gwolbisa.ledgram.util.applyOrientationPolicy
+import com.gwolbisa.ledgram.util.enableLedgramEdgeToEdge
 
 class PrivacyPolicyActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         applyDocumentOrientationPolicy()
-        enableEdgeToEdge()
+        enableLedgramEdgeToEdge()
         setContent {
             LEDgramTheme {
                 PrivacyPolicyScreen(onBack = onBackPressedDispatcher::onBackPressed)

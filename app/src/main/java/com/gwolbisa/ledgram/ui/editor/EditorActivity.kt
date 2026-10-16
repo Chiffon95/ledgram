@@ -6,7 +6,6 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -33,6 +32,7 @@ import com.gwolbisa.ledgram.ui.display.DisplayActivity
 import com.gwolbisa.ledgram.ui.settings.SettingsActivity
 import com.gwolbisa.ledgram.ui.theme.LEDgramTheme
 import com.gwolbisa.ledgram.util.applyOrientationPolicy
+import com.gwolbisa.ledgram.util.enableLedgramEdgeToEdge
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -89,7 +89,7 @@ class EditorActivity : AppCompatActivity() {
                 state.renderStyle == RenderStyle.DOT_MATRIX && !initialDotMatrixPreviewPrepared
         }
         applyEditorOrientationPolicy()
-        enableEdgeToEdge()
+        enableLedgramEdgeToEdge()
         ledgramApplication.consentManager.requestConsentInfoUpdate(this)
 
         setContent {

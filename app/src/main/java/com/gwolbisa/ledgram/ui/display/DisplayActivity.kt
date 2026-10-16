@@ -8,7 +8,6 @@ import android.util.Log
 import android.view.WindowManager
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
 import androidx.core.view.WindowCompat
@@ -18,6 +17,7 @@ import com.gwolbisa.ledgram.BuildConfig
 import com.gwolbisa.ledgram.model.DisplayConfig
 import com.gwolbisa.ledgram.ui.theme.LEDgramTheme
 import com.gwolbisa.ledgram.util.applyOrientationPolicy
+import com.gwolbisa.ledgram.util.enableLedgramEdgeToEdge
 
 class DisplayActivity : AppCompatActivity() {
     private var previousBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
@@ -27,7 +27,7 @@ class DisplayActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         logLifecycle("onCreate")
         applyDisplayOrientationPolicy()
-        enableEdgeToEdge()
+        enableLedgramEdgeToEdge()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         previousBrightness = window.attributes.screenBrightness
         hideSystemBars()
